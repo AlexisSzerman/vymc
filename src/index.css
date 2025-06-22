@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Personalizaciones opcionales aquí */
+
+/* ======= Tipografía y diseño base ======= */
+html,
+body {
+  @apply bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 antialiased;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ======= Transiciones suaves ======= */
+button,
+input,
+select,
+textarea {
+  @apply transition duration-200 ease-in-out;
+}
+
+/* ======= Scroll personalizado (opcional) ======= */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+  border: 2px solid #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
