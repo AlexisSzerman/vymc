@@ -5,12 +5,15 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
-  doc,
-  setDoc
+  doc
 } from 'firebase/firestore';
-import { formatAssignmentType, getMeetingWeekDates, formatDateToYYYYMMDD } from '../utils/helpers';
+import {
+  formatAssignmentType,
+  formatDateToYYYYMMDD
+} from '../utils/helpers';
+import ReminderManager from '../components/ReminderManager';
 
-const appId = 'default-app-id'; // Reemplaza con el ID real si aplica
+const appId = 'default-app-id';
 
 const AssignmentsPage = ({ db, userId, showMessage }) => {
   const [participants, setParticipants] = useState([]);
@@ -22,14 +25,10 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   const [selectedParticipantId, setSelectedParticipantId] = useState('');
   const [secondSelectedParticipantId, setSecondSelectedParticipantId] = useState('');
   const [editingAssignment, setEditingAssignment] = useState(null);
-  const [reminderText, setReminderText] = useState('');
-  const [reminderDate, setReminderDate] = useState('');
 
   useEffect(() => {
     const today = new Date();
     setSelectedDate(formatDateToYYYYMMDD(today));
-    const { startOfWeek } = getMeetingWeekDates(today);
-    setReminderDate(formatDateToYYYYMMDD(startOfWeek));
   }, []);
 
   useEffect(() => {
@@ -55,7 +54,12 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
 
   useEffect(() => {
     const today = new Date();
-    const filtered = allAssignments.filter(a => new Date(a.date) >= today);
+    today.setHours(0, 0, 0, 0);
+    const filtered = allAssignments.filter(a => {
+      const [y, m, d] = a.date.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      return date >= today;
+    });
     filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     setCurrentAssignments(filtered);
   }, [allAssignments]);
@@ -124,17 +128,16 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     }
   };
 
-  const saveReminder = async () => {
-    if (!reminderDate) return showMessage('Selecciona una fecha.');
-    try {
-      const reminderRef = doc(db, `artifacts/${appId}/public/data/public_reminders`, reminderDate);
-      await setDoc(reminderRef, { message: reminderText.trim() });
-      showMessage('Recordatorio guardado.');
-    } catch (error) {
-      console.error(error);
-      showMessage(`Error al guardar recordatorio: ${error.message}`);
-    }
-  };
+  const selectedParticipantHistory = allAssignments
+    .filter(a => a.participantId === selectedParticipantId || a.secondParticipantId === selectedParticipantId)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5);
+
+  const duplaRepetida = selectedType === 'demostracion' && allAssignments.find(a =>
+    a.type === 'demostracion' &&
+    ((a.participantId === selectedParticipantId && a.secondParticipantId === secondSelectedParticipantId) ||
+     (a.participantId === secondSelectedParticipantId && a.secondParticipantId === selectedParticipantId))
+  );
 
   return (
     <div className="space-y-8">
@@ -143,33 +146,26 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
       <form onSubmit={handleSave} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-4 border border-blue-200 dark:border-blue-600">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-white">Fecha</label>
+            <label className=" dark:text-indigo-300">Fecha</label>
             <input type="date" className="w-full p-2" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required />
           </div>
           <div>
-            <label className="text-white">Tipo</label>
+            <label className=" dark:text-indigo-300">Tipo</label>
             <select className="w-full p-2" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
               <option value="discurso">Discurso</option>
               <option value="demostracion">Demostración</option>
-              <option value="presidencia">Presidencia</option>
               <option value="lectura-biblia">Lectura Bíblica</option>
               <option value="lectura-libro">Lectura del libro</option>
-              <option value="oracion-inicial">Oración Inicial</option>
-              <option value="oracion-final">Oración Final</option>
-              <option value="conduccion-estudio-biblico">Conducción Estudio Bíblico</option>
-              <option value="busquemos-perlas-escondidas">Busquemos Perlas Escondidas</option>
-              <option value="tesoros">Tesoros de la Biblia</option>
-              <option value="nuestra-vida-cristiana">Nuestra Vida Cristiana</option>
               <option value="asamblea-circuito">Asamblea Circuito</option>
               <option value="asamblea-regional">Asamblea Regional</option>
             </select>
           </div>
           <div>
-            <label className="text-white">Título</label>
+            <label className=" dark:text-indigo-300">Título</label>
             <input type="text" className="w-full p-2" value={assignmentTitle} onChange={(e) => setAssignmentTitle(e.target.value)} />
           </div>
           <div>
-            <label className="text-white">Titular</label>
+            <label className=" dark:text-indigo-300">Titular</label>
             <select className="w-full p-2" value={selectedParticipantId} onChange={(e) => setSelectedParticipantId(e.target.value)}>
               <option value="">Selecciona</option>
               {participants.map(p => (
@@ -179,7 +175,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           </div>
           {selectedType === 'demostracion' && (
             <div>
-              <label className="text-white">Ayudante</label>
+              <label className=" dark:text-indigo-300">Ayudante</label>
               <select className="w-full p-2" value={secondSelectedParticipantId} onChange={(e) => setSecondSelectedParticipantId(e.target.value)}>
                 <option value="">Selecciona</option>
                 {participants.map(p => (
@@ -189,6 +185,24 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
             </div>
           )}
         </div>
+
+        {selectedParticipantHistory.length > 0 && (
+          <div className="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border text-sm">
+            <p className="font-semibold text-gray-800 dark:text-white mb-2">Últimas asignaciones del participante:</p>
+            <ul className="list-disc pl-5 text-gray-700 dark:text-gray-200">
+              {selectedParticipantHistory.map((a, i) => (
+                <li key={i}>{a.date} - {formatAssignmentType(a.type)}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {duplaRepetida && (
+          <div className="mt-4 bg-red-100 dark:bg-red-800 p-3 rounded border text-red-800 dark:text-red-100">
+            ¡Advertencia! Esta dupla ya participó junta el {duplaRepetida.date}.
+          </div>
+        )}
+
         <div className="text-right">
           {editingAssignment && (
             <button type="button" onClick={() => setEditingAssignment(null)} className="mr-2 text-gray-600 underline">Cancelar</button>
@@ -198,13 +212,13 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
       </form>
 
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">Próximas Asignaciones</h3>
+        <h3 className="text-xl font-semibold  text-white">Asignaciones Próximas</h3>
         {currentAssignments.map(a => (
-          <div key={a.id} className="p-4 border rounded shadow-sm flex justify-between items-start">
+          <div key={a.id} className="p-4 border rounded shadow-sm flex justify-between items-start  text-white">
             <div>
-              <p className="font-semibold">{a.date} - {formatAssignmentType(a.type)}</p>
-              <p>{a.title}</p>
-              <p>
+              <p className="font-semibold  text-white">{a.date} - {formatAssignmentType(a.type)}</p>
+              <p className="font-semibold  text-white">{a.title}</p>
+              <p className="font-semibold  text-white">
                 {a.participantName}
                 {a.secondParticipantName && ` y ${a.secondParticipantName}`}
               </p>
@@ -217,12 +231,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-inner border border-gray-300 dark:border-gray-600 space-y-2">
-        <h3 className="font-semibold  text-white">Recordatorios</h3>
-        <input type="date" value={reminderDate} onChange={(e) => setReminderDate(e.target.value)} className="w-full p-2" />
-        <textarea value={reminderText} onChange={(e) => setReminderText(e.target.value)} rows="3" className="w-full p-2" />
-        <button onClick={saveReminder} className="bg-green-600 text-white px-4 py-2 rounded">Crear Recordatorio</button>
-      </div>
+      <ReminderManager db={db} showMessage={showMessage} />
     </div>
   );
 };
