@@ -11,6 +11,7 @@ import Participants from "./pages/ParticipantsPage";
 import Assignments from "./pages/AssignmentsPage";
 import HistoryView from "./pages/HistoryViewPage";
 import PublicView from "./pages/PublicViewPage";
+import RemindersPage from "./pages/RemindersPage";
 
 import MessageBox from "./components/MessageBox";
 
@@ -111,6 +112,9 @@ const App = () => {
             >
               Historial
             </button>
+            <button onClick={() => setCurrentPage('reminders')} className={navButtonClass(currentPage === 'reminders')}>
+            Recordatorios
+          </button>
           </>
         )}
       </nav>
@@ -163,6 +167,14 @@ const App = () => {
         {authUser && isAuthorized && currentPage === "history" && db && (
           <HistoryView db={db} showMessage={showMessage} />
         )}
+        {authUser && isAuthorized && currentPage === "reminders" && db && (
+          <RemindersPage
+            db={db}
+            userId={authUser.uid}
+            showMessage={showMessage}
+          />
+        )}
+        
       </main>
     </div>
   );

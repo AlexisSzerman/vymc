@@ -25,6 +25,9 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   const [selectedParticipantId, setSelectedParticipantId] = useState('');
   const [secondSelectedParticipantId, setSecondSelectedParticipantId] = useState('');
   const [editingAssignment, setEditingAssignment] = useState(null);
+  const [filterDate, setFilterDate] = useState('');
+  const [filterName, setFilterName] = useState('');
+  const [assignmentOrder, setAssignmentOrder] = useState('');
 
   useEffect(() => {
     const today = new Date();
@@ -55,14 +58,27 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const filtered = allAssignments.filter(a => {
+    let filtered = allAssignments.filter(a => {
       const [y, m, d] = a.date.split('-').map(Number);
       const date = new Date(y, m - 1, d);
       return date >= today;
     });
+
+    if (filterDate) {
+      filtered = filtered.filter(a => a.date === filterDate);
+    }
+
+    if (filterName.trim()) {
+      const name = filterName.toLowerCase();
+      filtered = filtered.filter(a =>
+        a.participantName?.toLowerCase().includes(name) ||
+        a.secondParticipantName?.toLowerCase().includes(name)
+      );
+    }
+
     filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     setCurrentAssignments(filtered);
-  }, [allAssignments]);
+  }, [allAssignments, filterDate, filterName]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -78,7 +94,8 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         type: selectedType,
         title: assignmentTitle.trim(),
         participantId: selectedParticipantId || null,
-        participantName: participants.find(p => p.id === selectedParticipantId)?.name || null
+        participantName: participants.find(p => p.id === selectedParticipantId)?.name || null,
+        orden: assignmentOrder ? parseInt(assignmentOrder, 10) : null
       };
 
       if (selectedType === 'demostracion') {
@@ -108,6 +125,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
       showMessage(`Error: ${error.message}`);
     }
   };
+  
 
   const handleEdit = (assignment) => {
     setEditingAssignment(assignment);
@@ -181,6 +199,10 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
+                    <div>
+            <label className=" dark:text-indigo-300">Orden</label>
+            <input type="number" className="w-full p-2" value={assignmentOrder} onChange={(e) => setAssignmentOrder(e.target.value)} min="1" />
+          </div>
           </div>
           {selectedType === 'demostracion' && (
             <div>
@@ -220,6 +242,26 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         </div>
       </form>
 
+      <div className="flex gap-4 items-center">
+        <input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <input
+          type="text"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          placeholder="Buscar por nombre"
+          className="p-2 border rounded"
+        />
+        <button onClick={() => {
+          setFilterDate('');
+          setFilterName('');
+        }} className="text-sm text-blue-600 dark:text-blue-400 underline">Limpiar filtros</button>
+      </div>
+
       <div className="space-y-2">
         <h3 className="text-xl font-semibold  text-white">Asignaciones Próximas</h3>
         {currentAssignments.map(a => (
@@ -231,6 +273,9 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                 {a.participantName}
                 {a.secondParticipantName && ` y ${a.secondParticipantName}`}
               </p>
+              <p className="font-semibold  text-white">
+              Orden: {a.orden}
+              </p>
             </div>
             <div className="space-x-2">
               <button onClick={() => handleEdit(a)} className="bg-yellow-500 text-white px-3 py-1 rounded">Editar</button>
@@ -239,8 +284,6 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           </div>
         ))}
       </div>
-
-      <ReminderManager db={db} showMessage={showMessage} />
     </div>
   );
 };

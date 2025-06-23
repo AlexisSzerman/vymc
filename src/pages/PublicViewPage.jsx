@@ -50,7 +50,11 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
             const date = new Date(year, month - 1, day);
             return date >= startOfWeek && date <= endOfWeek;
           })
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
+          .sort((a, b) => {
+            const ordenA = a.orden ?? 999;
+            const ordenB = b.orden ?? 999;
+            return ordenA - ordenB;
+          });
 
         setAssignments(filtered);
         setLoading(false);
@@ -97,12 +101,12 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
     weekOffset
   );
   const formattedStartDate = startOfWeek.toLocaleDateString("es-ES", {
+    day: "2-digit",
     month: "short",
-    day: "numeric",
   });
   const formattedEndDate = endOfWeek.toLocaleDateString("es-ES", {
+    day: "2-digit",
     month: "short",
-    day: "numeric",
     year: "numeric",
   });
 
@@ -131,29 +135,30 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
         </div>
       )}
 
-      <div className="flex justify-center items-center space-x-4">
-        <button
-          onClick={handlePreviousWeek}
-          disabled={weekOffset === 0}
-          className={`px-4 py-2 rounded-lg font-semibold transition duration-300 ease-in-out transform ${
-            weekOffset === 0
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:scale-105"
-          }`}
-        >
-          Semana Anterior
-        </button>
-
-        <span className="text-lg font-bold text-gray-800 dark:text-white">
-          Semana del {formattedStartDate} - {formattedEndDate}
-        </span>
-
-        <button
-          onClick={handleNextWeek}
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-        >
-          Semana Siguiente
-        </button>
+      <div className="flex justify-center mt-4">
+        <div className="flex items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded-full overflow-hidden text-sm sm:text-base font-medium shadow-inner">
+          <button
+            onClick={handlePreviousWeek}
+            disabled={weekOffset === 0}
+            className={`px-4 py-2 transition ${
+              weekOffset === 0
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            ≪
+          </button>
+          <span className="px-4 py-2 border-x border-gray-300 dark:border-gray-600 whitespace-nowrap">
+            {weekOffset === 0 ? 'Esta semana: ' : `Semana del: `}
+            {formattedStartDate} - {formattedEndDate}
+          </span>
+          <button
+            onClick={handleNextWeek}
+            className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+          >
+            ≫
+          </button>
+        </div>
       </div>
 
       {assignments.length === 0 ? (
@@ -164,14 +169,14 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
         <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
           {assignments.map((assignment) => (
             <li key={assignment.id} className="py-4">
-              <p className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+{/*               <p className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
                 {new Date(assignment.date).toLocaleDateString("es-ES", {
                   weekday: "long",
                   year: "numeric",
                   month: "long",
                   day: "numeric",
                 })}
-              </p>
+              </p> */}
               <p className="text-lg text-gray-700 dark:text-gray-300">
                 <span>{formatAssignmentType(assignment.type)}</span>: {assignment.title}
               </p>
@@ -201,14 +206,14 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
               }}
               className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
             >
-              🚪 Cerrar Sesión
+              Cerrar Sesión
             </button>
           ) : (
             <button
               onClick={() => setCurrentPage("login")}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
             >
-              🔐 Iniciar Sesión
+              Iniciar Sesión
             </button>
           )}
         </div>
