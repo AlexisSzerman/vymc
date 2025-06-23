@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { formatAssignmentType } from '../utils/helpers';
 
 const appId = 'default-app-id'; // Cambiar por el ID real si aplica
@@ -12,6 +12,8 @@ const HistoryViewPage = ({ db, showMessage }) => {
   const [filterDate, setFilterDate] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterName, setFilterName] = useState('');
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
     if (!db) return;
@@ -67,6 +69,17 @@ const HistoryViewPage = ({ db, showMessage }) => {
     setFilterName('');
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, `artifacts/${appId}/public/data/assignments`, id));
+      showMessage('Asignación eliminada.');
+      setConfirmDeleteId(null);
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      showMessage(`Error al eliminar: ${error.message}`);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-8 text-gray-600 dark:text-gray-400">Cargando historial de asignaciones...</div>;
   }
@@ -86,12 +99,21 @@ const HistoryViewPage = ({ db, showMessage }) => {
             <label className="block text-sm text-gray-700 dark:text-gray-300">Tipo</label>
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="w-full p-2 rounded">
               <option value="">Todos</option>
-              <option value="discurso">Discurso</option>
+              <option value="presidencia">Presidencia</option>
+              <option value="oracion-inicial">Oración Inicial</option>
+              <option value="oracion-final">Oración Final</option>
+              <option value="tesoros">Tesoros de la Biblia</option>
+              <option value="perlas-escondidas">Busquemos Perlas Escondidas</option>
               <option value="demostracion">Demostración</option>
+              <option value="discurso">Discurso</option>
+              <option value="conduccion-estudio-biblico">Conducción Estudio Bíblico</option>
+              <option value="nuestra-vida-cristiana">Nuestra Vida Cristiana</option>
+              <option value="necesidades">Necesidades de la congregación</option>
               <option value="lectura-biblia">Lectura Bíblica</option>
               <option value="lectura-libro">Lectura del libro</option>
               <option value="asamblea-circuito">Asamblea Circuito</option>
               <option value="asamblea-regional">Asamblea Regional</option>
+              <option value="visita">Visita Superintendente de Circuito y su esposa</option>
             </select>
           </div>
           <div>
@@ -109,17 +131,37 @@ const HistoryViewPage = ({ db, showMessage }) => {
           <li className="text-center text-gray-600 dark:text-gray-400 py-4">No se encontraron asignaciones pasadas.</li>
         ) : (
           filteredAssignments.map(a => (
-            <li key={a.id} className="py-4">
-              <p className="font-semibold text-gray-900 dark:text-white">{a.date} - {formatAssignmentType(a.type)}</p>
-              <p className="text-gray-700 dark:text-gray-300">{a.title}</p>
-              <p className="text-indigo-600 dark:text-indigo-400">
-                {a.participantName}
-                {a.type === 'demostracion' && a.secondParticipantName && ` y ${a.secondParticipantName}`}
-              </p>
+            <li key={a.id} className="py-4 flex justify-between items-start">
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">{a.date} - {formatAssignmentType(a.type)}</p>
+                <p className="text-gray-700 dark:text-gray-300">{a.title}</p>
+                <p className="text-indigo-600 dark:text-indigo-400">
+                  {a.participantName}
+                  {a.type === 'demostracion' && a.secondParticipantName && ` y ${a.secondParticipantName}`}
+                </p>
+              </div>
+              <div>
+                <button
+                  onClick={() => setConfirmDeleteId(a.id)}
+                  className="bg-red-600 text-white px-3 py-1 rounded"
+                >Eliminar</button>
+              </div>
             </li>
           ))
         )}
       </ul>
+
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-sm">
+            <p className="text-gray-800 dark:text-white mb-4">¿Estás seguro de que querés eliminar esta asignación?</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmDeleteId(null)} className="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
+              <button onClick={() => handleDelete(confirmDeleteId)} className="bg-red-600 text-white px-4 py-2 rounded">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

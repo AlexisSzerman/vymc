@@ -152,12 +152,21 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           <div>
             <label className=" dark:text-indigo-300">Tipo</label>
             <select className="w-full p-2" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
-              <option value="discurso">Discurso</option>
+              <option value="presidencia">Presidencia</option>
+              <option value="oracion-inicial">Oración Inicial</option>
+              <option value="oracion-final">Oración Final</option>
+              <option value="tesoros">Tesoros de la Biblia</option>
+              <option value="perlas-escondidas">Busquemos Perlas Escondidas</option>
               <option value="demostracion">Demostración</option>
+              <option value="discurso">Discurso</option>
+              <option value="conduccion-estudio-biblico">Conducción Estudio Bíblico</option>
+              <option value="nuestra-vida-cristiana">Nuestra Vida Cristiana</option>
+              <option value="necesidades">Necesidades de la congregación</option>
               <option value="lectura-biblia">Lectura Bíblica</option>
               <option value="lectura-libro">Lectura del libro</option>
               <option value="asamblea-circuito">Asamblea Circuito</option>
               <option value="asamblea-regional">Asamblea Regional</option>
+              <option value="visita">Visita Superintendente de Circuito y su esposa</option>
             </select>
           </div>
           <div>

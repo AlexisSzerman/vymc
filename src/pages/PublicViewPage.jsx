@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { collection, doc, onSnapshot } from "firebase/firestore";
-import { getAuth, signOut } from "firebase/auth"; // 👈 necesario para cerrar sesión
+import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import {
   getMeetingWeekDates,
   formatDateToYYYYMMDD,
@@ -14,6 +14,15 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user && !user.isAnonymous);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!db) return;
@@ -82,7 +91,6 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
   const handlePreviousWeek = () => {
     setWeekOffset((prev) => (prev > 0 ? prev - 1 : 0));
   };
-
 
   const { startOfWeek, endOfWeek } = getMeetingWeekDates(
     new Date(),
@@ -165,8 +173,7 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
                 })}
               </p>
               <p className="text-lg text-gray-700 dark:text-gray-300">
-                <span>{formatAssignmentType(assignment.type)}</span>:{" "}
-                {assignment.title}
+                <span>{formatAssignmentType(assignment.type)}</span>: {assignment.title}
               </p>
               <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
                 {assignment.participantName && (
@@ -184,17 +191,26 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
 
       {typeof setCurrentPage === "function" && (
         <div className="text-center mt-10">
-          <button
-            onClick={() => {
-              const auth = getAuth();
-              signOut(auth).then(() => {
-                setCurrentPage("login");
-              });
-            }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
-          >
-            🔐 Iniciar Sesión
-          </button>
+          {isAuthenticated ? (
+            <button
+              onClick={() => {
+                const auth = getAuth();
+                signOut(auth).then(() => {
+                  setCurrentPage("login");
+                });
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
+            >
+              🚪 Cerrar Sesión
+            </button>
+          ) : (
+            <button
+              onClick={() => setCurrentPage("login")}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
+            >
+              🔐 Iniciar Sesión
+            </button>
+          )}
         </div>
       )}
     </div>

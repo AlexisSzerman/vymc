@@ -17,6 +17,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToDelete, setParticipantToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (!db || !userId) return;
@@ -24,7 +25,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     const colRef = collection(db, `artifacts/${appId}/users/${userId}/participants`);
     const unsubscribe = onSnapshot(colRef, (snapshot) => {
       const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setParticipants(fetched);
+      const sorted = fetched.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+      setParticipants(sorted);
     }, (error) => {
       console.error("Error loading participants:", error);
       showMessage(`Error al cargar participantes: ${error.message}`);
@@ -84,6 +86,10 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     }
   };
 
+  const filteredParticipants = participants.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-8">
       <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300">Gestión de Participantes</h2>
@@ -104,20 +110,36 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
         </div>
       </form>
 
+      <input
+        type="text"
+        placeholder="Buscar participante..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full p-3 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white mb-4"
+      />
+
       <ul className="divide-y">
-        {participants.map(p => (
-          <li key={p.id} className="py-3 flex justify-between items-center">
-            <div>
-              <p className="font-semibold  text-white">{p.name}</p>
-              {p.notes && <p className="text-sm text-gray-600">{p.notes}</p>}
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => handleEdit(p)} className="px-3 py-1 bg-yellow-500 text-white rounded">Editar</button>
-              <button onClick={() => handleDelete(p)} className="px-3 py-1 bg-red-600 text-white rounded">Eliminar</button>
-            </div>
-          </li>
-        ))}
+        {filteredParticipants.length > 0 ? (
+          filteredParticipants.map(p => (
+            <li key={p.id} className="py-3 flex justify-between items-center">
+              <div>
+                <p className="font-semibold text-white">{p.name}</p>
+                {p.notes && <p className="text-sm text-gray-400">{p.notes}</p>}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => handleEdit(p)} className="px-3 py-1 bg-yellow-500 text-white rounded">Editar</button>
+                <button onClick={() => handleDelete(p)} className="px-3 py-1 bg-red-600 text-white rounded">Eliminar</button>
+              </div>
+            </li>
+          ))
+        ) : (
+          <li className="text-sm text-gray-500 italic py-2">No se encontraron participantes.</li>
+        )}
       </ul>
+
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+        Total de participantes: {filteredParticipants.length}
+      </p>
 
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
