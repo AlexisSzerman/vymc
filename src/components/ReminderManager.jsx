@@ -74,14 +74,14 @@ const ReminderManager = ({ db, showMessage }) => {
           type="date"
           value={reminderDate}
           onChange={(e) => setReminderDate(e.target.value)}
-          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
+          className="w-full p-2 rounded border dark:border-gray-600"
         />
         <textarea
           value={reminderText}
           onChange={(e) => setReminderText(e.target.value)}
           rows="2"
           placeholder="Mensaje del recordatorio"
-          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
+          className="w-full p-2 rounded border dark:border-gray-600"
         />
       </div>
 
@@ -96,7 +96,7 @@ const ReminderManager = ({ db, showMessage }) => {
           </button>
         )}
         <button onClick={saveReminder} className="bg-green-600 text-white px-4 py-2 rounded">
-          {editingId ? 'Actualizar' : 'Guardar'}
+          {editingId ? 'Actualizar' : 'Crear'}
         </button>
       </div>
 
