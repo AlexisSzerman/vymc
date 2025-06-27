@@ -8,12 +8,30 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 
-const appId = 'default-app-id'; // reemplaza por tu valor real si aplica
+const appId = 'default-app-id';
+
+// Lista de asignaciones disponibles
+const ASSIGNMENT_TYPES = [
+  "presidencia",
+  "oracion-inicial",
+  "oracion-final",
+  "tesoros",
+  "perlas-escondidas",
+  "demostracion",
+  "discurso",
+  "conduccion-estudio-biblico",
+  "nuestra-vida-cristiana",
+  "necesidades",
+  "lectura-biblia",
+  "lectura-libro",
+  "ayudante"
+];
 
 const ParticipantsPage = ({ db, userId, showMessage }) => {
   const [participants, setParticipants] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNotes, setNewNotes] = useState('');
+  const [enabledAssignments, setEnabledAssignments] = useState([]); // nuevo estado
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToDelete, setParticipantToDelete] = useState(null);
@@ -40,22 +58,23 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     if (!newName.trim()) return showMessage('El nombre no puede estar vacío.');
 
     try {
+      const data = {
+        name: newName.trim(),
+        notes: newNotes.trim(),
+        enabledAssignments: enabledAssignments
+      };
+
       if (editingParticipant) {
-        await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/participants`, editingParticipant.id), {
-          name: newName.trim(),
-          notes: newNotes.trim()
-        });
+        await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/participants`, editingParticipant.id), data);
         showMessage('Participante actualizado.');
         setEditingParticipant(null);
       } else {
-        await addDoc(collection(db, `artifacts/${appId}/users/${userId}/participants`), {
-          name: newName.trim(),
-          notes: newNotes.trim()
-        });
+        await addDoc(collection(db, `artifacts/${appId}/users/${userId}/participants`), data);
         showMessage('Participante añadido.');
       }
       setNewName('');
       setNewNotes('');
+      setEnabledAssignments([]);
     } catch (error) {
       console.error('Error saving participant:', error);
       showMessage(`Error: ${error.message}`);
@@ -65,7 +84,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   const handleEdit = (p) => {
     setEditingParticipant(p);
     setNewName(p.name);
-    setNewNotes(p.notes);
+    setNewNotes(p.notes || '');
+    setEnabledAssignments(p.enabledAssignments || []);
   };
 
   const handleDelete = (p) => {
@@ -86,6 +106,14 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     }
   };
 
+  const toggleAssignment = (assignment) => {
+    if (enabledAssignments.includes(assignment)) {
+      setEnabledAssignments(enabledAssignments.filter(a => a !== assignment));
+    } else {
+      setEnabledAssignments([...enabledAssignments, assignment]);
+    }
+  };
+
   const filteredParticipants = participants.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -94,15 +122,47 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     <div className="space-y-8">
       <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300">Gestión de Participantes</h2>
       <form onSubmit={handleAddOrUpdate} className="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl shadow-inner space-y-4">
-        <input type="text" placeholder="Nombre" className="w-full p-3 rounded" value={newName} onChange={(e) => setNewName(e.target.value)} required />
-        <textarea placeholder="Notas" className="w-full p-3 rounded" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Nombre"
+          className="w-full p-3 rounded"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          required
+        />
+        <textarea
+          placeholder="Notas"
+          className="w-full p-3 rounded"
+          value={newNotes}
+          onChange={(e) => setNewNotes(e.target.value)}
+        />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <p className="text-sm text-gray-600 dark:text-gray-300 col-span-full text-xl">Asignaciones aprobadas:</p>
+          {ASSIGNMENT_TYPES.map(type => (
+            <label key={type} className="flex items-center gap-2 text-sm  text-white">
+              <input
+                type="checkbox"
+                checked={enabledAssignments.includes(type)}
+                onChange={() => toggleAssignment(type)}
+              />
+              {type}
+            </label>
+          ))}
+        </div>
         <div className="flex justify-end gap-2">
           {editingParticipant && (
-            <button type="button" onClick={() => {
-              setEditingParticipant(null);
-              setNewName('');
-              setNewNotes('');
-            }} className="px-4 py-2 bg-gray-400 text-white rounded">Cancelar</button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingParticipant(null);
+                setNewName('');
+                setNewNotes('');
+                setEnabledAssignments([]);
+              }}
+              className="px-4 py-2 bg-gray-400 text-white rounded"
+            >
+              Cancelar
+            </button>
           )}
           <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
             {editingParticipant ? 'Actualizar' : 'Agregar'}

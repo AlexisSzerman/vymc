@@ -48,34 +48,40 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     };
   }, [db, userId]);
 
-  useEffect(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let filtered = allAssignments.filter(a => {
+useEffect(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let filtered;
+
+  if (filterDate) {
+    // Mostrar sólo asignaciones de esa fecha
+    filtered = allAssignments.filter(a => a.date === filterDate);
+  } else {
+    // Mostrar todas las futuras
+    filtered = allAssignments.filter(a => {
       const [y, m, d] = a.date.split('-').map(Number);
       const date = new Date(y, m - 1, d);
       return date >= today;
     });
+  }
 
-    if (filterDate) {
-      filtered = filtered.filter(a => a.date === filterDate);
-    }
+  if (filterName.trim()) {
+    const name = filterName.toLowerCase();
+    filtered = filtered.filter(a =>
+      a.participantName?.toLowerCase().includes(name) ||
+      a.secondParticipantName?.toLowerCase().includes(name)
+    );
+  }
 
-    if (filterName.trim()) {
-      const name = filterName.toLowerCase();
-      filtered = filtered.filter(a =>
-        a.participantName?.toLowerCase().includes(name) ||
-        a.secondParticipantName?.toLowerCase().includes(name)
-      );
-    }
+  filtered.sort((a, b) => {
+    if (a.date === b.date) return (a.orden ?? 99) - (b.orden ?? 99);
+    return new Date(a.date) - new Date(b.date);
+  });
 
-    filtered.sort((a, b) => {
-      if (a.date === b.date) return (a.orden ?? 99) - (b.orden ?? 99);
-      return new Date(a.date) - new Date(b.date);
-    });
+  setCurrentAssignments(filtered);
+}, [allAssignments, filterDate, filterName]);
 
-    setCurrentAssignments(filtered);
-  }, [allAssignments, filterDate, filterName]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -152,6 +158,12 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
+    const secondSelectedParticipantHistory = allAssignments
+  .filter(a => a.participantId === secondSelectedParticipantId || a.secondParticipantId === secondSelectedParticipantId)
+  .sort((a, b) => new Date(b.date) - new Date(a.date))
+  .slice(0, 5);
+
+
   const duplaRepetida = selectedType === 'demostracion' && allAssignments.find(a =>
     a.type === 'demostracion' &&
     ((a.participantId === selectedParticipantId && a.secondParticipantId === secondSelectedParticipantId) ||
@@ -203,31 +215,51 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
               <label className=" dark:text-indigo-300">Orden</label>
               <input type="number" min="0" className="w-full p-2" value={assignmentOrder} onChange={(e) => setAssignmentOrder(e.target.value)} />
             </div>
-            <div>
-              <label className=" dark:text-indigo-300">Titular</label>
-              <select className="w-full p-2" value={selectedParticipantId} onChange={(e) => setSelectedParticipantId(e.target.value)}>
-                <option value="">Selecciona</option>
-                {participants.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-            {selectedType === 'demostracion' && (
-              <div>
-                <label className=" dark:text-indigo-300">Ayudante</label>
-                <select className="w-full p-2" value={secondSelectedParticipantId} onChange={(e) => setSecondSelectedParticipantId(e.target.value)}>
-                  <option value="">Selecciona</option>
-                  {participants.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+<div>
+  <label className=" dark:text-indigo-300">Titular</label>
+  <select
+    className="w-full p-2"
+    value={selectedParticipantId}
+    onChange={(e) => setSelectedParticipantId(e.target.value)}
+  >
+    <option value="">Selecciona</option>
+    {participants
+  .filter(p =>
+    p.enabledAssignments?.includes(selectedType)
+  )
+
+      .map(p => (
+        <option key={p.id} value={p.id}>{p.name}</option>
+      ))}
+  </select>
+</div>
+
+           {selectedType === 'demostracion' && (
+  <div>
+    <label className=" dark:text-indigo-300">Ayudante</label>
+    <select
+      className="w-full p-2"
+      value={secondSelectedParticipantId}
+      onChange={(e) => setSecondSelectedParticipantId(e.target.value)}
+    >
+      <option value="">Selecciona</option>
+     {participants
+  .filter(p =>
+    p.enabledAssignments?.includes("demostracion") ||
+    p.enabledAssignments?.includes("ayudante")
+  )
+  .map(p => (
+    <option key={p.id} value={p.id}>{p.name}</option>
+  ))}
+    </select>
+  </div>
+)}
 
 {selectedParticipantHistory.length > 0 && (
   <div className="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border text-sm">
-    <p className="font-semibold text-gray-800 dark:text-white mb-2">Últimas asignaciones del participante:</p>
+    <p className="font-semibold text-gray-800 dark:text-white mb-2">
+      Últimas asignaciones de {participants.find(p => p.id === selectedParticipantId)?.name || '—'}:
+    </p>
     <ul className="list-disc pl-5 text-gray-700 dark:text-gray-200">
       {selectedParticipantHistory.map((a, i) => {
         const esTitular = a.participantId === selectedParticipantId;
@@ -255,6 +287,39 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   </div>
 )}
 
+{secondSelectedParticipantHistory.length > 0 && (
+  <div className="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border text-sm">
+    <p className="font-semibold text-gray-800 dark:text-white mb-2">
+      Últimas asignaciones de {participants.find(p => p.id === secondSelectedParticipantId)?.name || '—'}:
+    </p>
+    <ul className="list-disc pl-5 text-gray-700 dark:text-gray-200">
+      {secondSelectedParticipantHistory.map((a, i) => {
+        const esTitular = a.participantId === secondSelectedParticipantId;
+        const esAyudante = a.secondParticipantId === secondSelectedParticipantId;
+        return (
+          <li key={i}>
+            {a.date} - {formatAssignmentType(a.type)}:
+            {esTitular && (
+              <>
+                {' '}
+                {a.title}
+                {a.secondParticipantName && ` - con ${a.secondParticipantName}`}
+              </>
+            )}
+            {esAyudante && (
+              <>
+                {' '}
+                {a.title} (como ayudante de {a.participantName})
+              </>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+)}
+
+
 
           {duplaRepetida && (
             <div className="mt-4 bg-red-100 dark:bg-red-800 p-3 rounded border text-red-800 dark:text-red-100">
@@ -268,7 +333,8 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
             )}
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">{editingAssignment ? 'Actualizar' : 'Guardar'}</button>
           </div>
-        </form>
+        </div>
+      </form>
       )}
 
       <div className="flex gap-4 items-center">
