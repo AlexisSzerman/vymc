@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { formatDateToYYYYMMDD } from '../utils/helpers';
 
-const appId = 'default-app-id'; // Reemplazalo si corresponde
+const appId = 'default-app-id'; 
 
 const ReminderManager = ({ db, showMessage }) => {
   const [reminderDate, setReminderDate] = useState(formatDateToYYYYMMDD(new Date()));
@@ -25,7 +25,7 @@ const ReminderManager = ({ db, showMessage }) => {
         id: doc.id,
         ...doc.data()
       }));
-      fetched.sort((a, b) => new Date(b.id) - new Date(a.id)); // Más recientes arriba
+      fetched.sort((a, b) => new Date(b.id) - new Date(a.id)); 
       setAllReminders(fetched);
     });
 

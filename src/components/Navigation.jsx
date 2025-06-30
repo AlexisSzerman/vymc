@@ -5,6 +5,7 @@ const Navigation = ({ currentPage, setCurrentPage }) => {
     { key: 'assignments', label: 'Asignaciones' },
     { key: 'public', label: 'Vista Pública' },
     { key: 'history', label: 'Historial' },
+    { key: 'replacements', label: 'Reemplazos' },
   ];
 
   return (

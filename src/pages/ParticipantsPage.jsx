@@ -86,6 +86,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     setNewName(p.name);
     setNewNotes(p.notes || '');
     setEnabledAssignments(p.enabledAssignments || []);
+    window.scrollTo({ top: 200, behavior: "smooth" });
   };
 
   const handleDelete = (p) => {
@@ -203,7 +204,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
 
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl space-y-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl space-y-4 text-white">
             <p>¿Eliminar a <strong>{participantToDelete?.name}</strong>?</p>
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowConfirmModal(false)} className="px-4 py-2 bg-gray-500 text-white rounded">Cancelar</button>

@@ -122,7 +122,7 @@ const HistoryViewPage = ({ db, showMessage }) => {
           </div>
         </div>
         <div className="text-right">
-          <button onClick={handleClearFilters} className="text-sm text-blue-600 dark:text-blue-400 underline">Limpiar filtros</button>
+          <button onClick={handleClearFilters} className="bg-blue-600 text-white px-3 py-1 rounded">Limpiar filtros</button>
         </div>
       </div>
 

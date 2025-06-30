@@ -12,8 +12,10 @@ import Assignments from "./pages/AssignmentsPage";
 import HistoryView from "./pages/HistoryViewPage";
 import PublicView from "./pages/PublicViewPage";
 import RemindersPage from "./pages/RemindersPage";
+import ReplacementsPage from "./pages/ReplacementsPage";
 
 import MessageBox from "./components/MessageBox";
+import ConfirmDialog from "./components/ConfirmDialog";
 
 const App = () => {
   const [db, setDb] = useState(null);
@@ -23,6 +25,12 @@ const App = () => {
 
   const [message, setMessage] = useState("");
   const [showMessageBox, setShowMessageBox] = useState(false);
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    visible: false,
+    message: "",
+    resolve: null,
+  });
 
   // Inicializa Firebase y escucha cambios de auth
   useEffect(() => {
@@ -44,14 +52,35 @@ const App = () => {
     }
   }, [authUser, currentPage]);
 
+  // Mensajes
   const showMessage = (msg) => {
     setMessage(msg);
     setShowMessageBox(true);
+    setTimeout(() => {
+      setShowMessageBox(false);
+    }, 3000);
   };
 
   const closeMessageBox = () => {
     setMessage("");
     setShowMessageBox(false);
+  };
+
+  // Confirmación
+  const showConfirm = (message) => {
+    return new Promise((resolve) => {
+      setConfirmDialog({ visible: true, message, resolve });
+    });
+  };
+
+  const handleConfirm = () => {
+    if (confirmDialog.resolve) confirmDialog.resolve(true);
+    setConfirmDialog({ ...confirmDialog, visible: false });
+  };
+
+  const handleCancel = () => {
+    if (confirmDialog.resolve) confirmDialog.resolve(false);
+    setConfirmDialog({ ...confirmDialog, visible: false });
   };
 
   const isAuthorized = authUser && authorizedEmails.includes(authUser.email);
@@ -70,6 +99,13 @@ const App = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 font-inter text-gray-800 p-4 sm:p-6 lg:p-8 rounded-lg shadow-inner">
       {showMessageBox && (
         <MessageBox message={message} onClose={closeMessageBox} />
+      )}
+      {confirmDialog.visible && (
+        <ConfirmDialog
+          message={confirmDialog.message}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
       )}
 
       <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-indigo-700 dark:text-indigo-300 mb-8 sm:mb-12">
@@ -112,15 +148,23 @@ const App = () => {
             >
               Historial
             </button>
-            <button onClick={() => setCurrentPage('reminders')} className={navButtonClass(currentPage === 'reminders')}>
-            Recordatorios
-          </button>
+            <button
+              onClick={() => setCurrentPage("reminders")}
+              className={navButtonClass(currentPage === "reminders")}
+            >
+              Recordatorios
+            </button>
+            <button
+              onClick={() => setCurrentPage("replacements")}
+              className={navButtonClass(currentPage === "replacements")}
+            >
+              Reemplazos
+            </button>
           </>
         )}
       </nav>
 
       <main className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 sm:p-8 border border-blue-100 dark:border-blue-700">
-        {/* Render login si no está logueado y está en página privada */}
         {!authUser && currentPage !== "public" && (
           <LoginPage
             onLoginSuccess={(user) => {
@@ -130,7 +174,6 @@ const App = () => {
           />
         )}
 
-        {/* Vista pública siempre disponible */}
         {currentPage === "public" && db && (
           <PublicView
             db={db}
@@ -139,7 +182,6 @@ const App = () => {
           />
         )}
 
-        {/* Si está logueado pero no autorizado */}
         {authUser && !isAuthorized && currentPage !== "public" && (
           <p className="text-center text-red-600 dark:text-red-300 font-semibold">
             Usuario no está autorizado para acceder a esta sección.
@@ -149,7 +191,6 @@ const App = () => {
           </p>
         )}
 
-        {/* Vistas privadas si está logueado y autorizado */}
         {authUser && isAuthorized && currentPage === "participants" && db && (
           <Participants
             db={db}
@@ -174,7 +215,13 @@ const App = () => {
             showMessage={showMessage}
           />
         )}
-        
+        {authUser && isAuthorized && currentPage === "replacements" && db && (
+          <ReplacementsPage
+            db={db}
+            showMessage={showMessage}
+            showConfirm={showConfirm}
+          />
+        )}
       </main>
     </div>
   );
