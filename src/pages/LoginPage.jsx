@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
-import firebaseConfig from '../utils/firebaseConfig';
-import { authorizedEmails } from '../utils/authorizedEmails';
+import { useState } from "react";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import firebaseConfig from "../utils/firebaseConfig";
+import { authorizedEmails } from "../utils/authorizedEmails";
+import { Mail, Lock, LogIn } from "lucide-react";
 
 const LoginPage = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
+    setErrorMsg("");
 
     try {
       const app = initializeApp(firebaseConfig);
@@ -22,47 +23,61 @@ const LoginPage = ({ onLoginSuccess }) => {
       if (authorizedEmails.includes(user.email)) {
         onLoginSuccess(user);
       } else {
-        setErrorMsg("Este usuario no está autorizado para gestionar datos. Para pedir autorización, enviar mail a alexszer1986@gmail.com.");
+        setErrorMsg(
+          "Este usuario no está autorizado para gestionar datos. Para pedir autorización, enviar mail a alexszer1986@gmail.com."
+        );
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setErrorMsg('Email o contraseña inválidos.');
+      console.error("Login error:", error);
+      setErrorMsg("Este usuario no está autorizado para gestionar datos. Para pedir autorización, enviar mail a alexszer1986@gmail.com");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-indigo-200 p-4">
-      <form onSubmit={handleLogin} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-sm space-y-6 border border-gray-300 dark:border-gray-700">
-        <h2 className="text-2xl font-bold text-center text-indigo-700 dark:text-indigo-300">Iniciar Sesión</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-indigo-950 p-4">
+      <form
+        onSubmit={handleLogin}
+        className="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-xl w-full max-w-sm space-y-6"
+      >
+        <h2 className="text-2xl font-bold text-center text-indigo-300 flex items-center justify-center gap-2">
+          <LogIn className="w-6 h-6" /> Iniciar Sesión
+        </h2>
 
         {errorMsg && (
-          <p className="text-red-600 bg-red-100 dark:bg-red-800 dark:text-red-200 p-2 rounded text-sm text-center">
+          <p className="text-red-400 bg-red-900/50 border border-red-700 p-2 rounded text-sm text-center">
             {errorMsg}
           </p>
         )}
 
-        <input
-          type="email"
-          className="w-full p-3 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div className="relative">
+          <Mail className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="email"
+            className="w-full pl-10 p-3 rounded border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-indigo-500"
+            placeholder="Correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          className="w-full p-3 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="password"
+            className="w-full pl-10 p-3 rounded border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-indigo-500"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded transition"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2"
         >
+          <LogIn className="w-5 h-5" />
           Ingresar
         </button>
       </form>

@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { formatDateToYYYYMMDD } from '../utils/helpers';
 
-const appId = 'default-app-id'; 
+const appId = 'default-app-id';
 
 const ReminderManager = ({ db, showMessage }) => {
   const [reminderDate, setReminderDate] = useState(formatDateToYYYYMMDD(new Date()));
@@ -25,7 +25,7 @@ const ReminderManager = ({ db, showMessage }) => {
         id: doc.id,
         ...doc.data()
       }));
-      fetched.sort((a, b) => new Date(b.id) - new Date(a.id)); 
+      fetched.sort((a, b) => new Date(b.id) - new Date(a.id));
       setAllReminders(fetched);
     });
 
@@ -66,52 +66,79 @@ const ReminderManager = ({ db, showMessage }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-inner border border-gray-300 dark:border-gray-600 space-y-4 mt-10">
-      <h3 className="text-xl font-semibold text-gray-800 dark:text-white">📌 Recordatorio Público</h3>
+    <div className="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-700 space-y-6">
+      <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+        📌 Recordatorio Público
+      </h3>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <input
-          type="date"
-          value={reminderDate}
-          onChange={(e) => setReminderDate(e.target.value)}
-          className="w-full p-2 rounded border dark:border-gray-600"
-        />
-        <textarea
-          value={reminderText}
-          onChange={(e) => setReminderText(e.target.value)}
-          rows="2"
-          placeholder="Mensaje del recordatorio"
-          className="w-full p-2 rounded border dark:border-gray-600"
-        />
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-gray-300">Fecha</label>
+          <input
+            type="date"
+            value={reminderDate}
+            onChange={(e) => setReminderDate(e.target.value)}
+            className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-gray-300">Mensaje</label>
+          <textarea
+            value={reminderText}
+            onChange={(e) => setReminderText(e.target.value)}
+            rows="2"
+            placeholder="Mensaje del recordatorio"
+            className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-2">
         {editingId && (
-          <button onClick={() => {
-            setEditingId(null);
-            setReminderText('');
-            setReminderDate(formatDateToYYYYMMDD(new Date()));
-          }} className="px-4 py-2 bg-gray-400 text-white rounded">
+          <button
+            onClick={() => {
+              setEditingId(null);
+              setReminderText('');
+              setReminderDate(formatDateToYYYYMMDD(new Date()));
+            }}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition"
+          >
             Cancelar
           </button>
         )}
-        <button onClick={saveReminder} className="bg-green-600 text-white px-4 py-2 rounded">
+        <button
+          onClick={saveReminder}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition"
+        >
           {editingId ? 'Actualizar' : 'Crear'}
         </button>
       </div>
 
       <div>
-        <h4 className="text-lg font-semibold mt-6 mb-2 text-gray-700 dark:text-gray-300">Recordatorios existentes</h4>
+        <h4 className="text-lg font-semibold text-white mb-3">Recordatorios existentes</h4>
         <ul className="space-y-2">
           {allReminders.map((reminder) => (
-            <li key={reminder.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-3 rounded shadow">
+            <li
+              key={reminder.id}
+              className="flex justify-between items-start bg-gray-800 border border-gray-700 p-4 rounded-xl"
+            >
               <div>
-                <p className="font-semibold text-gray-800 dark:text-white">{reminder.id}</p>
-                <p className="text-gray-700 dark:text-gray-200">{reminder.message}</p>
+                <p className="font-semibold text-indigo-300">{reminder.id}</p>
+                <p className="text-gray-200">{reminder.message}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => handleEdit(reminder)} className="bg-yellow-500 text-white px-3 py-1 rounded">Editar</button>
-                <button onClick={() => handleDelete(reminder)} className="bg-red-600 text-white px-3 py-1 rounded">Eliminar</button>
+                <button
+                  onClick={() => handleEdit(reminder)}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-400 transition"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(reminder)}
+                  className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-500 transition"
+                >
+                  Eliminar
+                </button>
               </div>
             </li>
           ))}

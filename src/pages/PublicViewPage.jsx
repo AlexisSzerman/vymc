@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { collection, doc, onSnapshot } from "firebase/firestore";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+
 import {
   getMeetingWeekDates,
   formatDateToYYYYMMDD,
@@ -9,20 +9,12 @@ import {
 
 const appId = "default-app-id"; // Cambiar si es necesario
 
-const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
+const PublicViewPage = ({ db, showMessage,  }) => {
   const [assignments, setAssignments] = useState([]);
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user && !user.isAnonymous);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!db) return;
@@ -169,14 +161,6 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
         <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
           {assignments.map((assignment) => (
             <li key={assignment.id} className="py-4">
-{/*               <p className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
-                {new Date(assignment.date).toLocaleDateString("es-ES", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p> */}
               <p className="text-lg text-gray-700 dark:text-gray-300">
                 <span>{formatAssignmentType(assignment.type)}</span>: {assignment.title}
               </p>
@@ -194,7 +178,7 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
         </ul>
       )}
 
-      {typeof setCurrentPage === "function" && (
+{/*       {typeof setCurrentPage === "function" && (
         <div className="text-center mt-10">
           {isAuthenticated ? (
             <button
@@ -217,7 +201,7 @@ const PublicViewPage = ({ db, showMessage, setCurrentPage }) => {
             </button>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
