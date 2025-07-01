@@ -17,7 +17,8 @@ import ReplacementsPage from "./pages/ReplacementsPage";
 import MessageBox from "./components/MessageBox";
 import ConfirmDialog from "./components/ConfirmDialog";
 import Navigation from "./components/Navigation";
-import Header from "./components/Header"; // AÑADIDO
+import Header from "./components/Header"; 
+import DashboardPage from "./pages/DashboardPage";
 
 const App = () => {
   const [db, setDb] = useState(null);
@@ -148,7 +149,9 @@ const App = () => {
               <strong>alexszer1986@gmail.com</strong>.
             </p>
           )}
-
+           {currentPage === "dashboard" && (
+              <DashboardPage db={db} showMessage={showMessage} />
+            )}
           {authUser && isAuthorized && currentPage === "participants" && db && (
             <Participants db={db} userId={authUser.uid} showMessage={showMessage} />
           )}

@@ -15,6 +15,7 @@ const Navigation = ({ currentPage, setCurrentPage }) => {
     { key: "reminders", label: "Recordatorios", icon: Bell },
     { key: "replacements", label: "Reemplazos", icon: RefreshCcw },
     { key: "history", label: "Historial", icon: History },
+    { key: "dashboard", label: "Dashboard", icon: ClipboardList },
   ];
 
   return (
