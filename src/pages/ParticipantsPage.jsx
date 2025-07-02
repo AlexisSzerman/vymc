@@ -16,6 +16,7 @@ import {
   Square,
   Search,
 } from "lucide-react";
+import { formatAssignmentType } from "../utils/helpers";
 
 const appId = "default-app-id";
 
@@ -188,24 +189,24 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {ASSIGNMENT_TYPES.map((type) => (
-              <label
-                key={type}
-                className="flex items-center gap-2 text-sm text-gray-200"
-              >
-                {enabledAssignments.includes(type) ? (
-                  <CheckSquare
-                    className="w-4 h-4 cursor-pointer"
-                    onClick={() => toggleAssignment(type)}
-                  />
-                ) : (
-                  <Square
-                    className="w-4 h-4 cursor-pointer"
-                    onClick={() => toggleAssignment(type)}
-                  />
-                )}
-                {type}
-              </label>
-            ))}
+  <label
+    key={type}
+    className="flex items-center gap-2 text-sm text-gray-200"
+  >
+    {enabledAssignments.includes(type) ? (
+      <CheckSquare
+        className="w-4 h-4 cursor-pointer"
+        onClick={() => toggleAssignment(type)}
+      />
+    ) : (
+      <Square
+        className="w-4 h-4 cursor-pointer"
+        onClick={() => toggleAssignment(type)}
+      />
+    )}
+    {formatAssignmentType(type)}
+  </label>
+))}
           </div>
         </div>
         <div className="flex justify-end gap-2">

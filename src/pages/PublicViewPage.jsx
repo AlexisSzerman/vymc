@@ -7,7 +7,7 @@ import {
   formatAssignmentType,
 } from "../utils/helpers";
 
-const appId = "default-app-id"; // Cambiar si es necesario
+const appId = "default-app-id";
 
 const PublicViewPage = ({ db, showMessage,  }) => {
   const [assignments, setAssignments] = useState([]);
@@ -82,11 +82,11 @@ const PublicViewPage = ({ db, showMessage,  }) => {
       unsubscribeReminder();
     };
   }, [db, showMessage, weekOffset]);
-
+/* 
   const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
   const handlePreviousWeek = () => {
     setWeekOffset((prev) => (prev > 0 ? prev - 1 : 0));
-  };
+  }; */
 
   const { startOfWeek, endOfWeek } = getMeetingWeekDates(
     new Date(),
@@ -127,31 +127,26 @@ const PublicViewPage = ({ db, showMessage,  }) => {
         </div>
       )}
 
-      <div className="flex justify-center mt-4">
-        <div className="flex items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded-full overflow-hidden text-sm sm:text-base font-medium shadow-inner">
-          <button
-            onClick={handlePreviousWeek}
-            disabled={weekOffset === 0}
-            className={`px-4 py-2 transition ${
-              weekOffset === 0
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            ≪
-          </button>
-          <span className="px-4 py-2 border-x border-gray-300 dark:border-gray-600 whitespace-nowrap">
-            {weekOffset === 0 ? 'Esta semana: ' : `Semana del: `}
-            {formattedStartDate} - {formattedEndDate}
-          </span>
-          <button
-            onClick={handleNextWeek}
-            className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-          >
-            ≫
-          </button>
-        </div>
-      </div>
+<div className="flex justify-center mt-4">
+  <div className="flex items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600">
+    <button
+      onClick={() => setWeekOffset((prev) => prev - 1)}
+      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+    >
+      ◀ Anterior
+    </button>
+    <span className="px-4 py-2 whitespace-nowrap">
+      {weekOffset === 0 ? "Esta semana:" : "Semana del:"}{" "}
+      {formattedStartDate} - {formattedEndDate}
+    </span>
+    <button
+      onClick={() => setWeekOffset((prev) => prev + 1)}
+      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+    >
+      Siguiente ▶
+    </button>
+  </div>
+</div>
 
       {assignments.length === 0 ? (
         <p className="text-center text-gray-600 dark:text-gray-400 py-4">
@@ -162,7 +157,7 @@ const PublicViewPage = ({ db, showMessage,  }) => {
           {assignments.map((assignment) => (
             <li key={assignment.id} className="py-4">
               <p className="text-lg text-gray-700 dark:text-gray-300">
-                <span>{formatAssignmentType(assignment.type)}</span>: {assignment.title}
+                <span>{formatAssignmentType(assignment.type)}</span> : {assignment.title}
               </p>
               <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
                 {assignment.participantName && (
@@ -177,31 +172,6 @@ const PublicViewPage = ({ db, showMessage,  }) => {
           ))}
         </ul>
       )}
-
-{/*       {typeof setCurrentPage === "function" && (
-        <div className="text-center mt-10">
-          {isAuthenticated ? (
-            <button
-              onClick={() => {
-                const auth = getAuth();
-                signOut(auth).then(() => {
-                  setCurrentPage("login");
-                });
-              }}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
-            >
-              Cerrar Sesión
-            </button>
-          ) : (
-            <button
-              onClick={() => setCurrentPage("login")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-full shadow-md transition"
-            >
-              Iniciar Sesión
-            </button>
-          )}
-        </div>
-      )} */}
     </div>
   );
 };

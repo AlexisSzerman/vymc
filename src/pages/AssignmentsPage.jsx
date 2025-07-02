@@ -29,7 +29,6 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
 
   const resetForm = () => {
     setEditingAssignment(null);
-    setMeetingDate("");
     setSelectedType("discurso");
     setAssignmentTitle("");
     setAssignmentOrder("");
@@ -107,7 +106,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     e.preventDefault();
     if (!meetingDate) return showMessage("Primero debes seleccionar una fecha de reunión.");
 
-    const isAssembly = ["asamblea-circuito", "asamblea-regional"].includes(selectedType);
+    const isAssembly = ["asamblea-circuito", "asamblea-regional","cancion"].includes(selectedType);
     if (!isAssembly && !selectedParticipantId) {
       return showMessage("Completa los campos requeridos.");
     }
@@ -271,6 +270,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                 onChange={(e) => setSelectedType(e.target.value)}
               >
                 <option value="presidencia">Presidencia</option>
+                <option value="cancion">Canción</option>
                 <option value="oracion-inicial">Oración Inicial</option>
                 <option value="oracion-final">Oración Final</option>
                 <option value="tesoros">Tesoros de la Biblia</option>

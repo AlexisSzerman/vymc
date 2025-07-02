@@ -33,10 +33,47 @@ export const formatDateToYYYYMMDD = (date) => {
 };
 
 // Helper function to format assignment type for display
-export const formatAssignmentType = (typeString) => {
-    if (!typeString) return '';
-    return typeString
-        .split('-') // Split by hyphen
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
-        .join(' '); // Join with space
+export const formatAssignmentType = (type) => {
+  switch (type) {
+    case "presidencia":
+      return "Presidencia";
+    case "cancion":
+      return "Canción";
+    case "oracion-inicial":
+      return "Oración Inicial";
+    case "oracion-final":
+      return "Oración Final";
+    case "tesoros":
+      return "Tesoros de la Biblia";
+    case "perlas-escondidas":
+      return "Busquemos Perlas Escondidas";
+    case "demostracion":
+      return "Demostración";
+    case "discurso":
+      return "Discurso";
+    case "conduccion-estudio-biblico":
+      return "Conducción Estudio Bíblico";
+    case "nuestra-vida-cristiana":
+      return "Nuestra Vida Cristiana";
+    case "necesidades":
+      return "Necesidades de la Congregación";
+    case "lectura-biblia":
+      return "Lectura Bíblica";
+    case "lectura-libro":
+      return "Lectura del Libro";
+    case "asamblea-circuito":
+      return "Asamblea de Circuito";
+    case "asamblea-regional":
+      return "Asamblea Regional";
+    case "visita":
+      return "Visita del Superintendente y su Esposa";
+    default:
+      // Si no está definido, devolver con capitalización genérica
+      return type
+        .split("-")
+        .map(
+          (word) => word.charAt(0).toUpperCase() + word.slice(1)
+        )
+        .join(" ");
+  }
 };

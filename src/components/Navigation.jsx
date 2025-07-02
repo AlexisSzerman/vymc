@@ -1,10 +1,12 @@
 import {
   Users,
   ClipboardList,
+  ArrowDownFromLine,
   Globe,
   History,
   RefreshCcw,
   Bell,
+  ChartSpline
 } from "lucide-react";
 
 const Navigation = ({ currentPage, setCurrentPage }) => {
@@ -15,7 +17,8 @@ const Navigation = ({ currentPage, setCurrentPage }) => {
     { key: "reminders", label: "Recordatorios", icon: Bell },
     { key: "replacements", label: "Reemplazos", icon: RefreshCcw },
     { key: "history", label: "Historial", icon: History },
-    { key: "dashboard", label: "Dashboard", icon: ClipboardList },
+    { key: "dashboard", label: "Dashboard", icon: ChartSpline },
+    { key: "export", label: "Exportar Asignaciones", icon: ArrowDownFromLine },
   ];
 
   return (

@@ -96,10 +96,11 @@ const ReplacementsPage = ({ db, showMessage, showConfirm }) => {
                   {r.date} — {r.title} ({r.type})
                 </p>
                 <p className="text-gray-300">
-                  <strong className="text-gray-200">Reemplazo de {r.replacedRole}:</strong>{" "}
-                  <span className="text-red-400">{r.oldParticipantName || "—"}</span>{" "}
-                  <span className="text-gray-400">por</span>{" "}
-                  <span className="text-green-400">{r.newParticipantName || "—"}</span>
+                  <span className="text-green-400">{r.newParticipantName || "—"}</span>{" "}
+                  <span className="text-gray-400">reemplaza a </span>{" "}
+                  <span className="text-red-400">{r.oldParticipantName || "—"}</span> {" "}
+                  <span className="text-gray-400">como</span>{" "}
+                  <strong className="text-gray-200">{r.replacedRole}</strong>{" "}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Registrado el {new Date(r.timestamp).toLocaleString()}

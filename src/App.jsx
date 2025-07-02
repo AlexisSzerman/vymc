@@ -13,7 +13,7 @@ import HistoryView from "./pages/HistoryViewPage";
 import PublicView from "./pages/PublicViewPage";
 import RemindersPage from "./pages/RemindersPage";
 import ReplacementsPage from "./pages/ReplacementsPage";
-
+import ExportAssignmentsPage from "./pages/ExportAssignmentsPage";
 import MessageBox from "./components/MessageBox";
 import ConfirmDialog from "./components/ConfirmDialog";
 import Navigation from "./components/Navigation";
@@ -150,7 +150,10 @@ const App = () => {
             </p>
           )}
            {currentPage === "dashboard" && (
-              <DashboardPage db={db} showMessage={showMessage} />
+              <DashboardPage db={db} showMessage={showMessage} authUser={authUser} />
+            )}
+            {currentPage === "export" && (
+              <ExportAssignmentsPage db={db} showMessage={showMessage} />
             )}
           {authUser && isAuthorized && currentPage === "participants" && db && (
             <Participants db={db} userId={authUser.uid} showMessage={showMessage} />
