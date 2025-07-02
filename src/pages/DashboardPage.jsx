@@ -22,7 +22,6 @@ ChartJS.register(
 
 const appId = "default-app-id";
 
-// Acá defines TODO lo que querés excluir
 const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "Guillermo Figueiras"];
 const EXCLUDED_ASSIGNMENT_TYPES = [
   "cancion",
@@ -96,7 +95,18 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
       !EXCLUDED_PARTICIPANTS.includes(r.newParticipantName)
   );
 
-  const activeParticipants = participants.filter((p) => p.active);
+const assignedParticipantNames = new Set();
+filteredAssignments.forEach((a) => {
+  if (a.participantName) assignedParticipantNames.add(a.participantName);
+  if (a.secondParticipantName) assignedParticipantNames.add(a.secondParticipantName);
+});
+
+const activeParticipants = participants.filter((p) =>
+  assignedParticipantNames.has(p.name)
+);
+
+console.log("Nombres de participantes asignados:", [...assignedParticipantNames]);
+console.log("Todos los participantes:", participants.map(p => ({id: p.id, name: p.name})));
 
   // Asignaciones por mes
   const assignmentsPerMonth = {};
