@@ -6,6 +6,7 @@ import {
   formatAssignmentType,
 } from "../utils/helpers";
 import { Gem, Wheat, Users } from "lucide-react";
+import Loader from "../components/Loader";
 
 const appId = "default-app-id";
 
@@ -36,11 +37,15 @@ const PublicViewPage = ({ db, showMessage }) => {
         );
 
         const filtered = fetched
-          .filter((assignment) => {
-            const [year, month, day] = assignment.date.split("-").map(Number);
-            const date = new Date(year, month - 1, day);
-            return date >= startOfWeek && date <= endOfWeek;
-          })
+  .filter((assignment) => {
+    // Ocultar si published = false
+    if (assignment.published === false) return false;
+
+    const [year, month, day] = assignment.date.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date >= startOfWeek && date <= endOfWeek;
+  })
+  
           .sort((a, b) => {
             const ordenA = a.orden ?? 999;
             const ordenB = b.orden ?? 999;
@@ -98,9 +103,7 @@ const PublicViewPage = ({ db, showMessage }) => {
 
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-        Cargando asignaciones...
-      </div>
+      <Loader />
     );
   }
 

@@ -20,12 +20,14 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   const [selectedType, setSelectedType] = useState("discurso");
   const [assignmentTitle, setAssignmentTitle] = useState("");
   const [selectedParticipantId, setSelectedParticipantId] = useState("");
-  const [secondSelectedParticipantId, setSecondSelectedParticipantId] = useState("");
+  const [secondSelectedParticipantId, setSecondSelectedParticipantId] =
+    useState("");
   const [assignmentOrder, setAssignmentOrder] = useState("");
   const [editingAssignment, setEditingAssignment] = useState(null);
   const [filterDate, setFilterDate] = useState("");
   const [filterName, setFilterName] = useState("");
   const [assignmentToDelete, setAssignmentToDelete] = useState(null);
+  const [replacements, setReplacements] = useState([]);
 
   const resetForm = () => {
     setEditingAssignment(null);
@@ -63,9 +65,23 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
       setAllAssignments(fetched);
     });
 
+    // 👉 Este bloque nuevo
+    const replacementsRef = collection(
+      db,
+      `artifacts/${appId}/public/data/replacements`
+    );
+    const unsubscribeReplacements = onSnapshot(replacementsRef, (snapshot) => {
+      const fetched = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setReplacements(fetched);
+    });
+
     return () => {
       unsubscribeParticipants();
       unsubscribeAssignments();
+      unsubscribeReplacements(); // 👉 Y este cleanup nuevo
     };
   }, [db, userId]);
 
@@ -104,9 +120,14 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!meetingDate) return showMessage("Primero debes seleccionar una fecha de reunión.");
+    if (!meetingDate)
+      return showMessage("Primero debes seleccionar una fecha de reunión.");
 
-    const isAssembly = ["asamblea-circuito", "asamblea-regional","cancion"].includes(selectedType);
+    const isAssembly = [
+      "asamblea-circuito",
+      "asamblea-regional",
+      "cancion",
+    ].includes(selectedType);
     if (!isAssembly && !selectedParticipantId) {
       return showMessage("Completa los campos requeridos.");
     }
@@ -117,7 +138,9 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
       title: assignmentTitle.trim(),
       orden: parseInt(assignmentOrder, 10) || 99,
       participantId: selectedParticipantId || null,
-      participantName: participants.find((p) => p.id === selectedParticipantId)?.name || null,
+      participantName:
+        participants.find((p) => p.id === selectedParticipantId)?.name || null,
+      published: false,
     };
 
     if (selectedType === "demostracion") {
@@ -129,7 +152,8 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
       }
       data.secondParticipantId = secondSelectedParticipantId;
       data.secondParticipantName =
-        participants.find((p) => p.id === secondSelectedParticipantId)?.name || null;
+        participants.find((p) => p.id === secondSelectedParticipantId)?.name ||
+        null;
     }
 
     try {
@@ -181,7 +205,11 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         }
 
         await updateDoc(
-          doc(db, `artifacts/${appId}/public/data/assignments`, editingAssignment.id),
+          doc(
+            db,
+            `artifacts/${appId}/public/data/assignments`,
+            editingAssignment.id
+          ),
           data
         );
         showMessage("Asignación actualizada.");
@@ -248,7 +276,9 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
 
       {/* Formulario */}
       <div className="flex flex-col sm:flex-row items-center gap-4">
-        <label className="text-indigo-200 font-semibold">Seleccionar fecha:</label>
+        <label className="text-indigo-200 font-semibold">
+          Seleccionar fecha:
+        </label>
         <input
           type="date"
           value={meetingDate}
@@ -256,7 +286,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           className="p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
         />
       </div>
-            {meetingDate && (
+      {meetingDate && (
         <form
           onSubmit={handleSave}
           className="bg-gray-900 border border-gray-700 p-6 rounded-xl shadow space-y-6"
@@ -274,12 +304,20 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                 <option value="oracion-inicial">Oración Inicial</option>
                 <option value="oracion-final">Oración Final</option>
                 <option value="tesoros">Tesoros de la Biblia</option>
-                <option value="perlas-escondidas">Busquemos Perlas Escondidas</option>
+                <option value="perlas-escondidas">
+                  Busquemos Perlas Escondidas
+                </option>
                 <option value="demostracion">Demostración</option>
                 <option value="discurso">Discurso</option>
-                <option value="conduccion-estudio-biblico">Conducción Estudio Bíblico</option>
-                <option value="nuestra-vida-cristiana">Nuestra Vida Cristiana</option>
-                <option value="necesidades">Necesidades de la congregación</option>
+                <option value="conduccion-estudio-biblico">
+                  Conducción Estudio Bíblico
+                </option>
+                <option value="nuestra-vida-cristiana">
+                  Nuestra Vida Cristiana
+                </option>
+                <option value="necesidades">
+                  Necesidades de la congregación
+                </option>
                 <option value="lectura-biblia">Lectura Bíblica</option>
                 <option value="lectura-libro">Lectura del libro</option>
                 <option value="asamblea-circuito">Asamblea Circuito</option>
@@ -329,7 +367,9 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                 <select
                   className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
                   value={secondSelectedParticipantId}
-                  onChange={(e) => setSecondSelectedParticipantId(e.target.value)}
+                  onChange={(e) =>
+                    setSecondSelectedParticipantId(e.target.value)
+                  }
                 >
                   <option value="">Selecciona</option>
                   {participants
@@ -351,66 +391,114 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           {selectedParticipantHistory.length > 0 && (
             <div className="mt-4 bg-gray-800 border border-gray-700 p-4 rounded text-sm">
               <p className="font-semibold text-gray-200 mb-2">
-                Últimas asignaciones de {participants.find((p) => p.id === selectedParticipantId)?.name || "—"}:
+                Últimas asignaciones de{" "}
+                {participants.find((p) => p.id === selectedParticipantId)
+                  ?.name || "—"}
+                :
               </p>
-              <ul className="list-disc pl-5 text-gray-300">
+
+              <ul className="list-disc pl-5 text-gray-300 mb-3">
                 {selectedParticipantHistory.map((a, i) => {
                   const esTitular = a.participantId === selectedParticipantId;
-                  const esAyudante = a.secondParticipantId === selectedParticipantId;
+                  const esAyudante =
+                    a.secondParticipantId === selectedParticipantId;
                   return (
                     <li key={i}>
                       {a.date} - {formatAssignmentType(a.type)}:
                       {esTitular && (
                         <>
-                          {" "}{a.title}
-                          {a.secondParticipantName && ` - con ${a.secondParticipantName}`}
+                          {" "}
+                          {a.title}
+                          {a.secondParticipantName &&
+                            ` - con ${a.secondParticipantName}`}
                         </>
                       )}
                       {esAyudante && (
                         <>
-                          {" "}{a.title} (como ayudante de {a.participantName})
+                          {" "}
+                          {a.title} (como ayudante de {a.participantName})
                         </>
                       )}
                     </li>
                   );
                 })}
               </ul>
+
+              <div className="text-gray-400">
+                Reemplazos recibidos:{" "}
+                {
+                  replacements.filter(
+                    (r) => r.oldParticipantId === selectedParticipantId
+                  ).length
+                }
+                {"  "}· Reemplazos realizados:{" "}
+                {
+                  replacements.filter(
+                    (r) => r.newParticipantId === selectedParticipantId
+                  ).length
+                }
+              </div>
             </div>
           )}
 
           {secondSelectedParticipantHistory.length > 0 && (
             <div className="mt-4 bg-gray-800 border border-gray-700 p-4 rounded text-sm">
               <p className="font-semibold text-gray-200 mb-2">
-                Últimas asignaciones de {participants.find((p) => p.id === secondSelectedParticipantId)?.name || "—"}:
+                Últimas asignaciones de{" "}
+                {participants.find((p) => p.id === secondSelectedParticipantId)
+                  ?.name || "—"}
+                :
               </p>
-              <ul className="list-disc pl-5 text-gray-300">
+
+              <ul className="list-disc pl-5 text-gray-300 mb-3">
                 {secondSelectedParticipantHistory.map((a, i) => {
-                  const esTitular = a.participantId === secondSelectedParticipantId;
-                  const esAyudante = a.secondParticipantId === secondSelectedParticipantId;
+                  const esTitular =
+                    a.participantId === secondSelectedParticipantId;
+                  const esAyudante =
+                    a.secondParticipantId === secondSelectedParticipantId;
                   return (
                     <li key={i}>
                       {a.date} - {formatAssignmentType(a.type)}:
                       {esTitular && (
                         <>
-                          {" "}{a.title}
-                          {a.secondParticipantName && ` - con ${a.secondParticipantName}`}
+                          {" "}
+                          {a.title}
+                          {a.secondParticipantName &&
+                            ` - con ${a.secondParticipantName}`}
                         </>
                       )}
                       {esAyudante && (
                         <>
-                          {" "}{a.title} (como ayudante de {a.participantName})
+                          {" "}
+                          {a.title} (como ayudante de {a.participantName})
                         </>
                       )}
                     </li>
                   );
                 })}
               </ul>
+
+              <div className="text-gray-400">
+                Reemplazos recibidos:{" "}
+                {
+                  replacements.filter(
+                    (r) => r.oldParticipantId === secondSelectedParticipantId
+                  ).length
+                }
+                {"  "}· Reemplazos realizados:{" "}
+                {
+                  replacements.filter(
+                    (r) => r.newParticipantId === secondSelectedParticipantId
+                  ).length
+                }
+              </div>
             </div>
           )}
 
           {duplaRepetida && (
             <div className="mt-4 bg-red-900 border border-red-700 p-3 rounded text-red-200">
-              ¡Advertencia! Esta dupla ya participó junta el {duplaRepetida.date}.
+              ¡Advertencia! Esta dupla ya participó junta el{" "}
+              {duplaRepetida.date}.
             </div>
           )}
 
@@ -462,7 +550,32 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
 
       {/* Listado */}
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-indigo-300">Asignaciones Próximas</h3>
+        <h3 className="text-xl font-semibold text-indigo-300">
+          Asignaciones Próximas
+        </h3>
+        {currentAssignments.length > 0 && (
+  <div className="flex justify-end mb-4">
+    <button
+      onClick={async () => {
+        const batch = currentAssignments
+          .filter((a) => a.published === false)
+          .map((a) =>
+            updateDoc(
+              doc(db, `artifacts/${appId}/public/data/assignments`, a.id),
+              { published: true }
+            )
+          );
+
+        await Promise.all(batch);
+        showMessage("Todas las asignaciones filtradas se publicaron.");
+      }}
+      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition"
+    >
+      Publicar Todo
+    </button>
+  </div>
+)}
+
         {currentAssignments.map((a) => (
           <div
             key={a.id}
@@ -492,6 +605,41 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
               >
                 Eliminar
               </button>
+              {a.published === false ? (
+                <button
+                  onClick={async () => {
+                    await updateDoc(
+                      doc(
+                        db,
+                        `artifacts/${appId}/public/data/assignments`,
+                        a.id
+                      ),
+                      { published: true }
+                    );
+                    showMessage("Asignación publicada.");
+                  }}
+                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition"
+                >
+                  Publicar
+                </button>
+              ) : (
+                <button
+                  onClick={async () => {
+                    await updateDoc(
+                      doc(
+                        db,
+                        `artifacts/${appId}/public/data/assignments`,
+                        a.id
+                      ),
+                      { published: false }
+                    );
+                    showMessage("Asignación ocultada.");
+                  }}
+                  className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
+                >
+                  Ocultar
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -505,7 +653,11 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           onConfirm={async () => {
             try {
               await deleteDoc(
-                doc(db, `artifacts/${appId}/public/data/assignments`, assignmentToDelete.id)
+                doc(
+                  db,
+                  `artifacts/${appId}/public/data/assignments`,
+                  assignmentToDelete.id
+                )
               );
               showMessage("Asignación eliminada.");
             } catch (error) {
