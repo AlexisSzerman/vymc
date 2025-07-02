@@ -105,9 +105,6 @@ const activeParticipants = participants.filter((p) =>
   assignedParticipantNames.has(p.name)
 );
 
-console.log("Nombres de participantes asignados:", [...assignedParticipantNames]);
-console.log("Todos los participantes:", participants.map(p => ({id: p.id, name: p.name})));
-
   // Asignaciones por mes
   const assignmentsPerMonth = {};
   filteredAssignments.forEach((a) => {
