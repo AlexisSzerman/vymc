@@ -24,12 +24,12 @@ const LoginPage = ({ onLoginSuccess }) => {
         onLoginSuccess(user);
       } else {
         setErrorMsg(
-          "Este usuario no está autorizado para gestionar datos. Para pedir autorización, enviar mail a alexszer1986@gmail.com."
+          "Para solicitar acceso, enviar mail a alexszer1986@gmail.com"
         );
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrorMsg("Este usuario no está autorizado para gestionar datos. Para pedir autorización, enviar mail a alexszer1986@gmail.com");
+      setErrorMsg("Para solicitar acceso, enviar mail a alexszer1986@gmail.com");
     }
   };
 
@@ -39,8 +39,9 @@ const LoginPage = ({ onLoginSuccess }) => {
         onSubmit={handleLogin}
         className="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-xl w-full max-w-sm space-y-6"
       >
-        <h2 className="text-2xl font-bold text-center text-indigo-300 flex items-center justify-center gap-2">
-          <LogIn className="w-6 h-6" /> Iniciar Sesión
+        <img src="/logo-3d.svg" alt="Logo" className="mx-auto h-40" />
+        <h2 className="text-2xl font-bold text-center text-indigo-300 flex items-center justify-center">
+          Iniciar Sesión
         </h2>
 
         {errorMsg && (

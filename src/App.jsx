@@ -47,11 +47,16 @@ const App = () => {
     });
   }, []);
 
-  useEffect(() => {
-    if (!authUser && currentPage !== "public" && currentPage !== "login") {
-      setCurrentPage("login");
-    }
-  }, [authUser, currentPage]);
+useEffect(() => {
+  if (
+    !authUser &&
+    currentPage !== "public" &&
+    currentPage !== "login" &&
+    currentPage !== "export"
+  ) {
+    setCurrentPage("login");
+  }
+}, [authUser, currentPage]);
 
   const showMessage = (msg) => {
     setMessage(msg);
@@ -86,11 +91,10 @@ const App = () => {
 
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-        <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-          Verificando sesión...
-        </p>
-      </div>
+  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+    <div className="w-12 h-12 border-4 border-gray-600 border-t-indigo-700 rounded-full animate-spin"></div>
+    <p className="mt-4 text-gray-300 text-lg font-semibold">Verificando Sesión</p>
+  </div>
     );
   }
 
@@ -103,12 +107,14 @@ const App = () => {
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        {authUser && (
-          <Navigation
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+      
+<Navigation
+  currentPage={currentPage}
+  setCurrentPage={setCurrentPage}
+  authUser={authUser}
+  isAuthorized={isAuthorized}
+/>
+        
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-auto">
@@ -116,22 +122,21 @@ const App = () => {
             <MessageBox message={message} onClose={closeMessageBox} />
           )}
           {confirmDialog.visible && (
-            <ConfirmDialog
-              message={confirmDialog.message}
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
-            />
-          )}
+  <ConfirmDialog
+    message={confirmDialog.message}
+    onConfirm={handleConfirm}
+    onCancel={handleCancel}
+  />
+)}
 
-
-          {!authUser && currentPage !== "public" && (
-            <LoginPage
-              onLoginSuccess={(user) => {
-                setAuthUser(user);
-                setCurrentPage("public");
-              }}
-            />
-          )}
+{!authUser && currentPage !== "public" && currentPage !== "export" && (
+  <LoginPage
+    onLoginSuccess={(user) => {
+      setAuthUser(user);
+      setCurrentPage("public");
+    }}
+  />
+)}
 
           {currentPage === "public" && db && (
             <PublicView
@@ -140,6 +145,13 @@ const App = () => {
               setCurrentPage={setCurrentPage}
             />
           )}
+          {currentPage === "export" && db && (
+  <ExportAssignmentsPage
+    db={db}
+    showMessage={showMessage}
+    publicView={true}
+  />
+)}
 
           {authUser && !isAuthorized && currentPage !== "public" && (
             <p className="text-center text-red-600 dark:text-red-300 font-semibold">
@@ -151,9 +163,6 @@ const App = () => {
           )}
            {currentPage === "dashboard" && (
               <DashboardPage db={db} showMessage={showMessage} authUser={authUser} />
-            )}
-            {currentPage === "export" && (
-              <ExportAssignmentsPage db={db} showMessage={showMessage} />
             )}
           {authUser && isAuthorized && currentPage === "participants" && db && (
             <Participants db={db} userId={authUser.uid} showMessage={showMessage} />

@@ -77,3 +77,11 @@ export const formatAssignmentType = (type) => {
         .join(" ");
   }
 };
+
+export function calcularDiasDesde(baseDate, dateString) {
+  if (!dateString) return Infinity;
+  const base = new Date(baseDate);
+  const date = new Date(dateString);
+  const diffTime = base - date;
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
