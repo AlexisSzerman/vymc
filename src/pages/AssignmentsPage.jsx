@@ -9,7 +9,9 @@ import {
 } from "firebase/firestore";
 import { formatAssignmentType, calcularDiasDesde } from "../utils/helpers";
 import ConfirmDialog from "../components/ConfirmDialog";
-
+import {
+  ClipboardList,
+} from "lucide-react";
 
 const appId = "default-app-id";
 
@@ -40,21 +42,17 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   };
 
   const [confirmDialog, setConfirmDialog] = useState({
-  visible: false,
-  message: "",
-  resolve: null,
-  confirmLabel: "Confirmar",
-});
-
-
-const showConfirm = (message, confirmLabel = "Confirmar") => {
-  return new Promise((resolve) => {
-    setConfirmDialog({ visible: true, message, resolve, confirmLabel });
+    visible: false,
+    message: "",
+    resolve: null,
+    confirmLabel: "Confirmar",
   });
-};
 
-
-
+  const showConfirm = (message, confirmLabel = "Confirmar") => {
+    return new Promise((resolve) => {
+      setConfirmDialog({ visible: true, message, resolve, confirmLabel });
+    });
+  };
 
   useEffect(() => {
     if (!db || !userId) return;
@@ -135,139 +133,147 @@ const showConfirm = (message, confirmLabel = "Confirmar") => {
     setCurrentAssignments(filtered);
   }, [allAssignments, filterDate, filterName]);
 
-const handleSave = async (e) => {
-  e.preventDefault();
-  if (!meetingDate) return showMessage("Primero debes seleccionar una fecha de reunión.");
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!meetingDate)
+      return showMessage("Primero debes seleccionar una fecha de reunión.");
 
-  const isAssembly = ["asamblea-circuito", "asamblea-regional", "cancion"].includes(selectedType);
-  if (!isAssembly && !selectedParticipantId) {
-    return showMessage("Completa los campos requeridos.");
-  }
-
-  // 🚨 Validar asignaciones en el mismo día
-  const sameDayAssignments = allAssignments.filter(
-    (a) => a.date === meetingDate && a.id !== (editingAssignment?.id ?? "")
-  );
-
-  let participantAlreadyAssigned = false;
-  let secondParticipantAlreadyAssigned = false;
-
-  sameDayAssignments.forEach((a) => {
-    if (
-      a.participantId === selectedParticipantId ||
-      a.secondParticipantId === selectedParticipantId
-    ) {
-      participantAlreadyAssigned = true;
+    const isAssembly = [
+      "asamblea-circuito",
+      "asamblea-regional",
+      "cancion",
+    ].includes(selectedType);
+    if (!isAssembly && !selectedParticipantId) {
+      return showMessage("Completa los campos requeridos.");
     }
-    if (
-      selectedType === "demostracion" &&
-      (
-        a.participantId === secondSelectedParticipantId ||
-        a.secondParticipantId === secondSelectedParticipantId
-      )
-    ) {
-      secondParticipantAlreadyAssigned = true;
-    }
-  });
 
-  if (participantAlreadyAssigned || secondParticipantAlreadyAssigned) {
-    const confirm = await showConfirm(
-      "El participante ya tiene una asignación esta fecha. ¿Deseas continuar?",
-      "Continuar"
+    // 🚨 Validar asignaciones en el mismo día
+    const sameDayAssignments = allAssignments.filter(
+      (a) => a.date === meetingDate && a.id !== (editingAssignment?.id ?? "")
     );
-    if (!confirm) {
-      return; // El usuario canceló
-    }
-  }
 
-  const data = {
-    date: meetingDate,
-    type: selectedType,
-    title: assignmentTitle.trim(),
-    orden: parseInt(assignmentOrder, 10) || 99,
-    participantId: selectedParticipantId || null,
-    participantName: participants.find((p) => p.id === selectedParticipantId)?.name || null,
-  };
+    let participantAlreadyAssigned = false;
+    let secondParticipantAlreadyAssigned = false;
 
-  if (selectedType === "demostracion") {
-    if (
-      !secondSelectedParticipantId ||
-      secondSelectedParticipantId === selectedParticipantId
-    ) {
-      return showMessage("Selecciona un segundo participante válido.");
-    }
-    data.secondParticipantId = secondSelectedParticipantId;
-    data.secondParticipantName =
-      participants.find((p) => p.id === secondSelectedParticipantId)?.name || null;
-  }
-
-  try {
-    if (editingAssignment) {
-      const changes = [];
-
+    sameDayAssignments.forEach((a) => {
       if (
-        editingAssignment.participantId &&
-        editingAssignment.participantId !== selectedParticipantId
+        a.participantId === selectedParticipantId ||
+        a.secondParticipantId === selectedParticipantId
       ) {
-        changes.push({
-          role: "titular",
-          oldId: editingAssignment.participantId,
-          oldName: editingAssignment.participantName,
-          newId: selectedParticipantId,
-          newName: data.participantName,
-        });
+        participantAlreadyAssigned = true;
       }
-
       if (
         selectedType === "demostracion" &&
-        editingAssignment.secondParticipantId !== secondSelectedParticipantId
+        (a.participantId === secondSelectedParticipantId ||
+          a.secondParticipantId === secondSelectedParticipantId)
       ) {
-        changes.push({
-          role: "ayudante",
-          oldId: editingAssignment.secondParticipantId || null,
-          oldName: editingAssignment.secondParticipantName || null,
-          newId: secondSelectedParticipantId,
-          newName: data.secondParticipantName,
-        });
+        secondParticipantAlreadyAssigned = true;
       }
+    });
 
-      for (const change of changes) {
-        await addDoc(
-          collection(db, `artifacts/${appId}/public/data/replacements`),
-          {
-            assignmentId: editingAssignment.id,
-            date: meetingDate,
-            type: selectedType,
-            title: assignmentTitle.trim(),
-            replacedRole: change.role,
-            oldParticipantId: change.oldId,
-            oldParticipantName: change.oldName,
-            newParticipantId: change.newId,
-            newParticipantName: change.newName,
-            timestamp: new Date().toISOString(),
-          }
-        );
+    if (participantAlreadyAssigned || secondParticipantAlreadyAssigned) {
+      const confirm = await showConfirm(
+        "El participante ya tiene una asignación esta fecha. ¿Deseas continuar?",
+        "Continuar"
+      );
+      if (!confirm) {
+        return; // El usuario canceló
       }
-
-      await updateDoc(
-        doc(db, `artifacts/${appId}/public/data/assignments`, editingAssignment.id),
-        data
-      );
-      showMessage("Asignación actualizada.");
-    } else {
-      await addDoc(
-        collection(db, `artifacts/${appId}/public/data/assignments`),
-        data
-      );
-      showMessage("Asignación creada.");
     }
-    resetForm();
-  } catch (error) {
-    console.error(error);
-    showMessage(`Error: ${error.message}`);
-  }
-};
 
+    const data = {
+      date: meetingDate,
+      type: selectedType,
+      title: assignmentTitle.trim(),
+      orden: parseInt(assignmentOrder, 10) || 99,
+      participantId: selectedParticipantId || null,
+      participantName:
+        participants.find((p) => p.id === selectedParticipantId)?.name || null,
+    };
+
+    if (selectedType === "demostracion") {
+      if (
+        !secondSelectedParticipantId ||
+        secondSelectedParticipantId === selectedParticipantId
+      ) {
+        return showMessage("Selecciona un segundo participante válido.");
+      }
+      data.secondParticipantId = secondSelectedParticipantId;
+      data.secondParticipantName =
+        participants.find((p) => p.id === secondSelectedParticipantId)?.name ||
+        null;
+    }
+
+    try {
+      if (editingAssignment) {
+        const changes = [];
+
+        if (
+          editingAssignment.participantId &&
+          editingAssignment.participantId !== selectedParticipantId
+        ) {
+          changes.push({
+            role: "titular",
+            oldId: editingAssignment.participantId,
+            oldName: editingAssignment.participantName,
+            newId: selectedParticipantId,
+            newName: data.participantName,
+          });
+        }
+
+        if (
+          selectedType === "demostracion" &&
+          editingAssignment.secondParticipantId !== secondSelectedParticipantId
+        ) {
+          changes.push({
+            role: "ayudante",
+            oldId: editingAssignment.secondParticipantId || null,
+            oldName: editingAssignment.secondParticipantName || null,
+            newId: secondSelectedParticipantId,
+            newName: data.secondParticipantName,
+          });
+        }
+
+        for (const change of changes) {
+          await addDoc(
+            collection(db, `artifacts/${appId}/public/data/replacements`),
+            {
+              assignmentId: editingAssignment.id,
+              date: meetingDate,
+              type: selectedType,
+              title: assignmentTitle.trim(),
+              replacedRole: change.role,
+              oldParticipantId: change.oldId,
+              oldParticipantName: change.oldName,
+              newParticipantId: change.newId,
+              newParticipantName: change.newName,
+              timestamp: new Date().toISOString(),
+            }
+          );
+        }
+
+        await updateDoc(
+          doc(
+            db,
+            `artifacts/${appId}/public/data/assignments`,
+            editingAssignment.id
+          ),
+          data
+        );
+        showMessage("Asignación actualizada.");
+      } else {
+        await addDoc(
+          collection(db, `artifacts/${appId}/public/data/assignments`),
+          data
+        );
+        showMessage("Asignación creada.");
+      }
+      resetForm();
+    } catch (error) {
+      console.error(error);
+      showMessage(`Error: ${error.message}`);
+    }
+  };
 
   const handleEdit = (assignment) => {
     setEditingAssignment(assignment);
@@ -380,8 +386,8 @@ const handleSave = async (e) => {
   return (
     <div className="space-y-8">
       {/* Encabezado */}
-      <h2 className="text-3xl font-bold text-indigo-500 dark:text-indigo-300 text-center">
-        Gestión de Asignaciones
+            <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
+        <ClipboardList className="w-6 h-6" /> Gestión de Asignaciones
       </h2>
 
       {/* Formulario */}
@@ -615,91 +621,101 @@ const handleSave = async (e) => {
           )}
 
           {/*       Sugerencias */}
-      {selectedType !== "demostracion" && sugerenciasGenerales.length > 0 && (
-        <div className="bg-blue-900 border border-blue-600 p-4 rounded text-blue-100 mb-4">
-          <p className="font-semibold mb-2">
-            Participantes que más tiempo hace que no tienen esta asignación:
-          </p>
-          <ul className="space-y-1">
-            {sugerenciasGenerales.map((p) => (
-              <li key={p.id} className="flex justify-between items-center">
-                <span>
-                  {p.name} (
-                  {p.diasSinAsignacion === Infinity
-                    ? "nunca tuvo"
-                    : `${p.diasSinAsignacion} días`}
-                  )
-                </span>
-                <button
-                  onClick={() => setSelectedParticipantId(p.id)}
-                  className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
-                >
-                  Seleccionar
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {selectedType === "demostracion" && (
-        <>
-          {sugerenciasTitularesDemostracion.length > 0 && (
-            <div className="bg-indigo-700 border border-indigo-400 p-4 rounded text-indigo-100 mb-4">
-              <p className="font-semibold mb-2">
-                Titulares con más tiempo sin asignación:
-              </p>
-              <ul className="space-y-1">
-                {sugerenciasTitularesDemostracion.map((p) => (
-                  <li key={p.id} className="flex justify-between items-center">
-                    <span>
-                      {p.name} (
-                      {p.diasSinAsignacion === Infinity
-                        ? "nunca tuvo"
-                        : `${p.diasSinAsignacion} días`}
-                      )
-                    </span>
-                    <button
-                      onClick={() => setSelectedParticipantId(p.id)}
-                      className="ml-2 mb-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-900 text-indigo-100 rounded text-sm"
+          {selectedType !== "demostracion" &&
+            sugerenciasGenerales.length > 0 && (
+              <div className="bg-blue-900 border border-blue-600 p-4 rounded text-blue-100 mb-4">
+                <p className="font-semibold mb-2">
+                  Participantes que más tiempo hace que no tienen esta
+                  asignación:
+                </p>
+                <ul className="space-y-1">
+                  {sugerenciasGenerales.map((p) => (
+                    <li
+                      key={p.id}
+                      className="flex justify-between items-center"
                     >
-                      Seleccionar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                      <span>
+                        {p.name} (
+                        {p.diasSinAsignacion === Infinity
+                          ? "nunca tuvo"
+                          : `${p.diasSinAsignacion} días`}
+                        )
+                      </span>
+                      <button
+                        onClick={() => setSelectedParticipantId(p.id)}
+                        className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                      >
+                        Seleccionar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          {sugerenciasAyudantesDemostracion.length > 0 && (
-            <div className="bg-gray-700 border border-gray-500 p-4 rounded text-pink-100 mb-4">
-              <p className="font-semibold mb-2">
-                Ayudantes con más tiempo sin asignación:
-              </p>
-              <ul className="space-y-1">
-                {sugerenciasAyudantesDemostracion.map((p) => (
-                  <li key={p.id} className="flex justify-between items-center">
-                    <span>
-                      {p.name} (
-                      {p.diasSinAsignacion === Infinity
-                        ? "nunca tuvo"
-                        : `${p.diasSinAsignacion} días`}
-                      )
-                    </span>
-                    <button
-                      onClick={() => setSecondSelectedParticipantId(p.id)}
-                      className="ml-2 mb-2 px-3 py-1 bg-gray-500 hover:bg-gray-900 text-white rounded text-sm"
-                    >
-                      Seleccionar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
+          {selectedType === "demostracion" && (
+            <>
+              {sugerenciasTitularesDemostracion.length > 0 && (
+                <div className="bg-indigo-700 border border-indigo-400 p-4 rounded text-indigo-100 mb-4">
+                  <p className="font-semibold mb-2">
+                    Titulares con más tiempo sin asignación:
+                  </p>
+                  <ul className="space-y-1">
+                    {sugerenciasTitularesDemostracion.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex justify-between items-center"
+                      >
+                        <span>
+                          {p.name} (
+                          {p.diasSinAsignacion === Infinity
+                            ? "nunca tuvo"
+                            : `${p.diasSinAsignacion} días`}
+                          )
+                        </span>
+                        <button
+                          onClick={() => setSelectedParticipantId(p.id)}
+                          className="ml-2 mb-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-900 text-indigo-100 rounded text-sm"
+                        >
+                          Seleccionar
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
+              {sugerenciasAyudantesDemostracion.length > 0 && (
+                <div className="bg-gray-700 border border-gray-500 p-4 rounded text-pink-100 mb-4">
+                  <p className="font-semibold mb-2">
+                    Ayudantes con más tiempo sin asignación:
+                  </p>
+                  <ul className="space-y-1">
+                    {sugerenciasAyudantesDemostracion.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex justify-between items-center"
+                      >
+                        <span>
+                          {p.name} (
+                          {p.diasSinAsignacion === Infinity
+                            ? "nunca tuvo"
+                            : `${p.diasSinAsignacion} días`}
+                          )
+                        </span>
+                        <button
+                          onClick={() => setSecondSelectedParticipantId(p.id)}
+                          className="ml-2 mb-2 px-3 py-1 bg-gray-500 hover:bg-gray-900 text-white rounded text-sm"
+                        >
+                          Seleccionar
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="flex justify-end gap-2">
             {editingAssignment && (
@@ -750,7 +766,7 @@ const handleSave = async (e) => {
       {/* Listado */}
       <div className="space-y-2">
         <h3 className="text-xl font-semibold text-indigo-300">
-          Asignaciones Próximas
+          Próximas Asignaciones
         </h3>
         {currentAssignments.length > 0 && (
           <div className="flex justify-end mb-4">
@@ -772,7 +788,7 @@ const handleSave = async (e) => {
                 await Promise.all(batch);
                 showMessage("Todas las asignaciones filtradas se publicaron.");
               }}
-              className="px-4 py-2 bg-green-600 hover:bg-green-900 text-white rounded transition"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition"
             >
               Publicar Todo
             </button>
@@ -798,13 +814,13 @@ const handleSave = async (e) => {
             <div className="flex gap-2">
               <button
                 onClick={() => handleEdit(a)}
-                className="px-3 py-1 bg-yellow-600 hover:bg-yellow-900 text-white rounded transition"
+                className="px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded transition"
               >
                 Editar
               </button>
               <button
                 onClick={() => setAssignmentToDelete(a)}
-                className="px-3 py-1 bg-red-600 hover:bg-red-900 text-white rounded transition"
+                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition"
               >
                 Eliminar
               </button>
@@ -821,7 +837,7 @@ const handleSave = async (e) => {
                     );
                     showMessage("Asignación publicada.");
                   }}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-900 text-white rounded transition"
+                  className="px-3 py-1 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition"
                 >
                   Publicar
                 </button>
@@ -838,7 +854,7 @@ const handleSave = async (e) => {
                     );
                     showMessage("Asignación ocultada.");
                   }}
-                  className="px-3 py-1 bg-gray-600 hover:bg-gray-900 text-white rounded transition"
+                  className="px-3 py-1 bg-slate-500 hover:bg-slate-700 text-white rounded transition"
                 >
                   Ocultar
                 </button>
@@ -852,6 +868,7 @@ const handleSave = async (e) => {
       {assignmentToDelete && (
         <ConfirmDialog
           message="¿Eliminar esta asignación? Esta acción no se puede deshacer."
+          confirmLabel="Eliminar"
           onCancel={() => setAssignmentToDelete(null)}
           onConfirm={async () => {
             try {
@@ -872,19 +889,18 @@ const handleSave = async (e) => {
         />
       )}
       {confirmDialog.visible && (
-  <ConfirmDialog
-    message={confirmDialog.message}
-    onConfirm={() => {
-      if (confirmDialog.resolve) confirmDialog.resolve(true);
-      setConfirmDialog({ ...confirmDialog, visible: false });
-    }}
-    onCancel={() => {
-      if (confirmDialog.resolve) confirmDialog.resolve(false);
-      setConfirmDialog({ ...confirmDialog, visible: false });
-    }}
-  />
-)}
-
+        <ConfirmDialog
+          message={confirmDialog.message}
+          onConfirm={() => {
+            if (confirmDialog.resolve) confirmDialog.resolve(true);
+            setConfirmDialog({ ...confirmDialog, visible: false });
+          }}
+          onCancel={() => {
+            if (confirmDialog.resolve) confirmDialog.resolve(false);
+            setConfirmDialog({ ...confirmDialog, visible: false });
+          }}
+        />
+      )}
     </div>
   );
 };

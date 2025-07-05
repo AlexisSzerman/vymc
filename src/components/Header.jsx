@@ -43,7 +43,7 @@ const Header = ({ setCurrentPage }) => {
               const auth = getAuth();
               signOut(auth).then(() => setCurrentPage("login"));
             }}
-            className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition text-sm"
+            className="flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded transition text-sm"
           >
             <LogOut className="w-4 h-4" />
             Cerrar Sesión

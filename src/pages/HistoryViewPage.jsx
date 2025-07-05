@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { formatAssignmentType } from '../utils/helpers';
+import { History} from "lucide-react";
 
 const appId = 'default-app-id';
 
@@ -8,11 +9,9 @@ const HistoryViewPage = ({ db, showMessage }) => {
   const [allAssignments, setAllAssignments] = useState([]);
   const [filteredAssignments, setFilteredAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [filterDate, setFilterDate] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterName, setFilterName] = useState('');
-
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
@@ -94,8 +93,8 @@ const HistoryViewPage = ({ db, showMessage }) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-indigo-400 text-center">
-        Historial de Discursos y Demostraciones
+            <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
+        <History className="w-6 h-6" /> Historial de Discursos y Demostraciones
       </h2>
 
       <div className="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-inner space-y-4">
@@ -178,7 +177,7 @@ const HistoryViewPage = ({ db, showMessage }) => {
               </div>
               <button
                 onClick={() => setConfirmDeleteId(a.id)}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition"
+                className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded transition"
               >
                 Eliminar
               </button>
@@ -202,7 +201,7 @@ const HistoryViewPage = ({ db, showMessage }) => {
               </button>
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition"
+                className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded transition"
               >
                 Eliminar
               </button>

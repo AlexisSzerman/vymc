@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { collection, onSnapshot, doc, deleteDoc } from "firebase/firestore";
+import { RefreshCcw } from "lucide-react";
 
 const appId = "default-app-id";
 
@@ -53,8 +54,8 @@ const ReplacementsPage = ({ db, showMessage, showConfirm }) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-indigo-400 text-center">
-        Registro de Reemplazos
+      <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
+        <RefreshCcw className="w-6 h-6" /> Registro de Reemplazos
       </h2>
 
       <div className="flex gap-3 flex-wrap items-center">
@@ -96,9 +97,13 @@ const ReplacementsPage = ({ db, showMessage, showConfirm }) => {
                   {r.date} — {r.title} ({r.type})
                 </p>
                 <p className="text-gray-300">
-                  <span className="text-green-400">{r.newParticipantName || "—"}</span>{" "}
+                  <span className="text-green-400">
+                    {r.newParticipantName || "—"}
+                  </span>{" "}
                   <span className="text-gray-400">reemplaza a </span>{" "}
-                  <span className="text-red-400">{r.oldParticipantName || "—"}</span> {" "}
+                  <span className="text-red-400">
+                    {r.oldParticipantName || "—"}
+                  </span>{" "}
                   <span className="text-gray-400">como</span>{" "}
                   <strong className="text-gray-200">{r.replacedRole}</strong>{" "}
                 </p>
@@ -108,7 +113,7 @@ const ReplacementsPage = ({ db, showMessage, showConfirm }) => {
               </div>
               <button
                 onClick={() => handleDelete(r)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
+                className="px-4 py-2 text-white rounded transition bg-rose-600 hover:bg-rose-700"
               >
                 Eliminar
               </button>

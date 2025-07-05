@@ -209,7 +209,7 @@ const PublicViewPage = ({ db, showMessage }) => {
                     {banner}
                     <li className="py-4">
                       <p className="text-lg text-gray-700 dark:text-gray-300">
-                        <span>{formatAssignmentType(assignment.type)}</span>
+                        <span className="text-lg text-white font-bold">{formatAssignmentType(assignment.type)}</span>
                         {assignment.title && <>: {assignment.title}</>}
                       </p>
                       <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">

@@ -53,7 +53,7 @@ const Navigation = ({ currentPage, setCurrentPage, authUser, isAuthorized }) => 
             onClick={() => setCurrentPage(key)}
             className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
               currentPage === key
-                ? "bg-indigo-600 text-white"
+                ? "bg-indigo-600 hover:bg-indigo-700 text-white"
                 : "hover:bg-indigo-100 dark:hover:bg-gray-800"
             }`}
           >

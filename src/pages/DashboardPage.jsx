@@ -10,6 +10,9 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
+import {
+  ChartSpline,
+} from "lucide-react";
 
 ChartJS.register(
   CategoryScale,
@@ -151,8 +154,9 @@ const activeParticipants = participants.filter((p) =>
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-indigo-700 dark:text-indigo-300 text-center">
-        Panel de Estadísticas
+
+      <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
+        <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

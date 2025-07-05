@@ -17,7 +17,7 @@ import ExportAssignmentsPage from "./pages/ExportAssignmentsPage";
 import MessageBox from "./components/MessageBox";
 import ConfirmDialog from "./components/ConfirmDialog";
 import Navigation from "./components/Navigation";
-import Header from "./components/Header"; 
+import Header from "./components/Header";
 import DashboardPage from "./pages/DashboardPage";
 
 const App = () => {
@@ -47,16 +47,16 @@ const App = () => {
     });
   }, []);
 
-useEffect(() => {
-  if (
-    !authUser &&
-    currentPage !== "public" &&
-    currentPage !== "login" &&
-    currentPage !== "export"
-  ) {
-    setCurrentPage("login");
-  }
-}, [authUser, currentPage]);
+  useEffect(() => {
+    if (
+      !authUser &&
+      currentPage !== "public" &&
+      currentPage !== "login" &&
+      currentPage !== "export"
+    ) {
+      setCurrentPage("login");
+    }
+  }, [authUser, currentPage]);
 
   const showMessage = (msg) => {
     setMessage(msg);
@@ -91,30 +91,28 @@ useEffect(() => {
 
   if (!authChecked) {
     return (
-  <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
-    <div className="w-12 h-12 border-4 border-gray-600 border-t-indigo-700 rounded-full animate-spin"></div>
-    <p className="mt-4 text-gray-300 text-lg font-semibold">Verificando Sesión</p>
-  </div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+        <div className="w-12 h-12 border-4 border-gray-600 border-t-indigo-700 rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-300 text-lg font-semibold">
+          Verificando Sesión
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 font-inter text-gray-800 dark:text-gray-100">
-      <Header
-        authUser={authUser}
-        setCurrentPage={setCurrentPage}
-      />
+      <Header authUser={authUser} setCurrentPage={setCurrentPage} />
 
       <div className="flex flex-1">
         {/* Sidebar */}
-      
-<Navigation
-  currentPage={currentPage}
-  setCurrentPage={setCurrentPage}
-  authUser={authUser}
-  isAuthorized={isAuthorized}
-/>
-        
+
+        <Navigation
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          authUser={authUser}
+          isAuthorized={isAuthorized}
+        />
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-auto">
@@ -122,21 +120,23 @@ useEffect(() => {
             <MessageBox message={message} onClose={closeMessageBox} />
           )}
           {confirmDialog.visible && (
-  <ConfirmDialog
-    message={confirmDialog.message}
-    onConfirm={handleConfirm}
-    onCancel={handleCancel}
-  />
-)}
+            <ConfirmDialog
+              message={confirmDialog.message}
+              onConfirm={handleConfirm}
+              onCancel={handleCancel}
+            />
+          )}
 
-{!authUser && currentPage !== "public" && currentPage !== "export" && (
-  <LoginPage
-    onLoginSuccess={(user) => {
-      setAuthUser(user);
-      setCurrentPage("public");
-    }}
-  />
-)}
+          {!authUser &&
+            currentPage !== "public" &&
+            currentPage !== "export" && (
+              <LoginPage
+                onLoginSuccess={(user) => {
+                  setAuthUser(user);
+                  setCurrentPage("public");
+                }}
+              />
+            )}
 
           {currentPage === "public" && db && (
             <PublicView
@@ -146,12 +146,12 @@ useEffect(() => {
             />
           )}
           {currentPage === "export" && db && (
-  <ExportAssignmentsPage
-    db={db}
-    showMessage={showMessage}
-    publicView={true}
-  />
-)}
+            <ExportAssignmentsPage
+              db={db}
+              showMessage={showMessage}
+              publicView={true}
+            />
+          )}
 
           {authUser && !isAuthorized && currentPage !== "public" && (
             <p className="text-center text-red-600 dark:text-red-300 font-semibold">
@@ -161,20 +161,36 @@ useEffect(() => {
               <strong>alexszer1986@gmail.com</strong>.
             </p>
           )}
-           {currentPage === "dashboard" && (
-              <DashboardPage db={db} showMessage={showMessage} authUser={authUser} />
-            )}
+          {currentPage === "dashboard" && (
+            <DashboardPage
+              db={db}
+              showMessage={showMessage}
+              authUser={authUser}
+            />
+          )}
           {authUser && isAuthorized && currentPage === "participants" && db && (
-            <Participants db={db} userId={authUser.uid} showMessage={showMessage} />
+            <Participants
+              db={db}
+              userId={authUser.uid}
+              showMessage={showMessage}
+            />
           )}
           {authUser && isAuthorized && currentPage === "assignments" && db && (
-            <Assignments db={db} userId={authUser.uid} showMessage={showMessage} />
+            <Assignments
+              db={db}
+              userId={authUser.uid}
+              showMessage={showMessage}
+            />
           )}
           {authUser && isAuthorized && currentPage === "history" && db && (
             <HistoryView db={db} showMessage={showMessage} />
           )}
           {authUser && isAuthorized && currentPage === "reminders" && db && (
-            <RemindersPage db={db} userId={authUser.uid} showMessage={showMessage} />
+            <RemindersPage
+              db={db}
+              userId={authUser.uid}
+              showMessage={showMessage}
+            />
           )}
           {authUser && isAuthorized && currentPage === "replacements" && db && (
             <ReplacementsPage
