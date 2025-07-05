@@ -124,26 +124,27 @@ const PublicViewPage = ({ db, showMessage }) => {
         </div>
       )}
 
-      <div className="flex justify-center mt-4">
-        <div className="flex items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600">
-          <button
-            onClick={() => setWeekOffset((prev) => prev - 1)}
-            className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-          >
-            ◀ Anterior
-          </button>
-          <span className="px-4 py-2 whitespace-nowrap">
-            {weekOffset === 0 ? "Esta semana:" : "Semana del:"}{" "}
-            {formattedStartDate} - {formattedEndDate}
-          </span>
-          <button
-            onClick={() => setWeekOffset((prev) => prev + 1)}
-            className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-          >
-            Siguiente ▶
-          </button>
-        </div>
-      </div>
+<div className="flex justify-center mt-4 px-2">
+  <div className="flex flex-col sm:flex-row items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-y sm:divide-y-0 sm:divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
+    <button
+      onClick={() => setWeekOffset((prev) => prev - 1)}
+      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto"
+    >
+      ◀ Anterior
+    </button>
+    <span className="px-4 py-2 whitespace-normal text-center w-full sm:w-auto break-words">
+      {weekOffset === 0 ? "Esta semana:" : "Semana del:"} <br />
+      {formattedStartDate} - {formattedEndDate}
+    </span>
+    <button
+      onClick={() => setWeekOffset((prev) => prev + 1)}
+      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto"
+    >
+      Siguiente ▶
+    </button>
+  </div>
+</div>
+
 
       {assignments.length === 0 ? (
         <p className="text-center text-gray-600 dark:text-gray-400 py-4">

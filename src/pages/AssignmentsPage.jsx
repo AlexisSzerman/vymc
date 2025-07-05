@@ -796,72 +796,65 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         )}
 
         {currentAssignments.map((a) => (
-          <div
-            key={a.id}
-            className="p-4 border border-gray-700 bg-gray-800 rounded flex justify-between items-start"
-          >
-            <div>
-              <p className="font-semibold text-gray-200">
-                {a.date} - {formatAssignmentType(a.type)}
-              </p>
-              <p className="text-gray-300">{a.title}</p>
-              <p className="text-gray-300">
-                {a.participantName}
-                {a.secondParticipantName && ` y ${a.secondParticipantName}`}
-              </p>
-              <p className="text-gray-400 text-sm">Orden: {a.orden}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(a)}
-                className="px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded transition"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => setAssignmentToDelete(a)}
-                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition"
-              >
-                Eliminar
-              </button>
-              {a.published === false ? (
-                <button
-                  onClick={async () => {
-                    await updateDoc(
-                      doc(
-                        db,
-                        `artifacts/${appId}/public/data/assignments`,
-                        a.id
-                      ),
-                      { published: true }
-                    );
-                    showMessage("Asignación publicada.");
-                  }}
-                  className="px-3 py-1 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition"
-                >
-                  Publicar
-                </button>
-              ) : (
-                <button
-                  onClick={async () => {
-                    await updateDoc(
-                      doc(
-                        db,
-                        `artifacts/${appId}/public/data/assignments`,
-                        a.id
-                      ),
-                      { published: false }
-                    );
-                    showMessage("Asignación ocultada.");
-                  }}
-                  className="px-3 py-1 bg-slate-500 hover:bg-slate-700 text-white rounded transition"
-                >
-                  Ocultar
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+  <div
+    key={a.id}
+    className="p-4 border border-gray-700 bg-gray-800 rounded flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0"
+  >
+    <div className="flex-1 min-w-0">
+      <p className="font-semibold text-gray-200 truncate">
+        {a.date} - {formatAssignmentType(a.type)}
+      </p>
+      <p className="text-gray-300 truncate">{a.title}</p>
+      <p className="text-gray-300 truncate">
+        {a.participantName}
+        {a.secondParticipantName && ` y ${a.secondParticipantName}`}
+      </p>
+      <p className="text-gray-400 text-sm">Orden: {a.orden}</p>
+    </div>
+    <div className="flex gap-2 overflow-x-auto sm:overflow-visible">
+      <button
+        onClick={() => handleEdit(a)}
+        className="flex-shrink-0 px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded transition whitespace-nowrap"
+      >
+        Editar
+      </button>
+      <button
+        onClick={() => setAssignmentToDelete(a)}
+        className="flex-shrink-0 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition whitespace-nowrap"
+      >
+        Eliminar
+      </button>
+      {a.published === false ? (
+        <button
+          onClick={async () => {
+            await updateDoc(
+              doc(db, `artifacts/${appId}/public/data/assignments`, a.id),
+              { published: true }
+            );
+            showMessage("Asignación publicada.");
+          }}
+          className="flex-shrink-0 px-3 py-1 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition whitespace-nowrap"
+        >
+          Publicar
+        </button>
+      ) : (
+        <button
+          onClick={async () => {
+            await updateDoc(
+              doc(db, `artifacts/${appId}/public/data/assignments`, a.id),
+              { published: false }
+            );
+            showMessage("Asignación ocultada.");
+          }}
+          className="flex-shrink-0 px-3 py-1 bg-slate-500 hover:bg-slate-700 text-white rounded transition whitespace-nowrap"
+        >
+          Ocultar
+        </button>
+      )}
+    </div>
+  </div>
+))}
+
       </div>
 
       {/* ConfirmDialog */}
