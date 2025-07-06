@@ -86,6 +86,7 @@ const App = () => {
     if (confirmDialog.resolve) confirmDialog.resolve(false);
     setConfirmDialog({ ...confirmDialog, visible: false });
   };
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isAuthorized = authUser && authorizedEmails.includes(authUser.email);
 
@@ -102,17 +103,25 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 font-inter text-gray-800 dark:text-gray-100">
-      <Header authUser={authUser} setCurrentPage={setCurrentPage} />
+      {/* <Header authUser={authUser} setCurrentPage={setCurrentPage} /> */}
+      <Header
+  setCurrentPage={setCurrentPage}
+  isMenuOpen={menuOpen}
+  toggleMenu={() => setMenuOpen(!menuOpen)}
+/>
+
 
       <div className="flex flex-1">
         {/* Sidebar */}
 
-        <Navigation
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          authUser={authUser}
-          isAuthorized={isAuthorized}
-        />
+<Navigation
+  currentPage={currentPage}
+  setCurrentPage={setCurrentPage}
+  authUser={authUser}
+  isAuthorized={isAuthorized}
+  isOpen={menuOpen}
+  setIsOpen={setMenuOpen}
+/>
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-auto">

@@ -37,15 +37,15 @@ const PublicViewPage = ({ db, showMessage }) => {
         );
 
         const filtered = fetched
-  .filter((assignment) => {
-    // Ocultar si published = false
-    if (assignment.published === false) return false;
+          .filter((assignment) => {
+            // Ocultar si published = false
+            if (assignment.published === false) return false;
 
-    const [year, month, day] = assignment.date.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-    return date >= startOfWeek && date <= endOfWeek;
-  })
-  
+            const [year, month, day] = assignment.date.split("-").map(Number);
+            const date = new Date(year, month - 1, day);
+            return date >= startOfWeek && date <= endOfWeek;
+          })
+
           .sort((a, b) => {
             const ordenA = a.orden ?? 999;
             const ordenB = b.orden ?? 999;
@@ -102,9 +102,7 @@ const PublicViewPage = ({ db, showMessage }) => {
   });
 
   if (loading) {
-    return (
-      <Loader />
-    );
+    return <Loader />;
   }
 
   return (
@@ -124,27 +122,33 @@ const PublicViewPage = ({ db, showMessage }) => {
         </div>
       )}
 
-<div className="flex justify-center mt-4 px-2">
-  <div className="flex flex-col sm:flex-row items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-y sm:divide-y-0 sm:divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
-    <button
-      onClick={() => setWeekOffset((prev) => prev - 1)}
-      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto"
-    >
-      ◀ Anterior
-    </button>
-    <span className="px-4 py-2 whitespace-normal text-center w-full sm:w-auto break-words">
-      {weekOffset === 0 ? "Esta semana:" : "Semana del:"} <br />
-      {formattedStartDate} - {formattedEndDate}
-    </span>
-    <button
-      onClick={() => setWeekOffset((prev) => prev + 1)}
-      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto"
-    >
-      Siguiente ▶
-    </button>
-  </div>
-</div>
-
+      <div className="flex justify-center mt-4 px-2">
+        <div className="flex flex-col sm:flex-row items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-y sm:divide-y-0 sm:divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
+          <button
+            onClick={() => setWeekOffset((prev) => prev - 1)}
+            className="w-full sm:w-auto px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+          >
+            Anterior
+          </button>
+          <span className="w-full sm:w-auto px-4 py-2 text-center break-words">
+            <span className="sm:hidden">
+              {weekOffset === 0 ? "Esta semana:" : "Semana del:"}
+              <br />
+              {formattedStartDate} - {formattedEndDate}
+            </span>
+            <span className="hidden sm:inline">
+              {weekOffset === 0 ? "Esta semana:" : "Semana del:"}{" "}
+              {formattedStartDate} - {formattedEndDate}
+            </span>
+          </span>
+          <button
+            onClick={() => setWeekOffset((prev) => prev + 1)}
+            className="w-full sm:w-auto px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+          >
+            Siguiente 
+          </button>
+        </div>
+      </div>
 
       {assignments.length === 0 ? (
         <p className="text-center text-gray-600 dark:text-gray-400 py-4">
@@ -210,7 +214,9 @@ const PublicViewPage = ({ db, showMessage }) => {
                     {banner}
                     <li className="py-4">
                       <p className="text-lg text-gray-700 dark:text-gray-300">
-                        <span className="text-lg text-white font-bold">{formatAssignmentType(assignment.type)}</span>
+                        <span className="text-lg text-gray-900 dark:text-white font-bold">
+                          {formatAssignmentType(assignment.type)}
+                        </span>
                         {assignment.title && <>: {assignment.title}</>}
                       </p>
                       <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">

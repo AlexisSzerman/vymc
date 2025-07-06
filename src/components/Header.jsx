@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { LogIn, LogOut, LayoutDashboard } from "lucide-react";
+import { LogIn, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
 
-const Header = ({ setCurrentPage }) => {
+const Header = ({ setCurrentPage, isMenuOpen, toggleMenu }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [scrolled, setScrolled] = useState(false);
@@ -37,13 +37,23 @@ const Header = ({ setCurrentPage }) => {
         scrolled ? "shadow-lg" : "shadow-none"
       }`}
     >
-      <h1
-        onClick={() => setCurrentPage("public")}
-        className="text-lg font-bold text-indigo-700 dark:text-indigo-300 cursor-pointer flex items-center gap-2"
-      >
-        <LayoutDashboard className="w-5 h-5" />
-        Gestor Reunion Vida y Ministerio Cristianos
-      </h1>
+      <div className="flex items-center gap-2">
+        {/* Botón hamburguesa SOLO en móviles */}
+        <button
+          onClick={toggleMenu}
+          className="sm:hidden p-2 rounded-md bg-indigo-600 text-white"
+        >
+          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+
+        <h1
+          onClick={() => setCurrentPage("public")}
+          className="text-lg font-bold text-indigo-700 dark:text-indigo-300 cursor-pointer flex items-center gap-2"
+        >
+          <img src="/logo-vymc.svg" alt="Logo" className="mx-auto h-12" />
+          Gestor Reunion Vida y Ministerio Cristianos
+        </h1>
+      </div>
 
       <div className="flex items-center gap-2">
         {isAuthenticated && (
@@ -78,4 +88,3 @@ const Header = ({ setCurrentPage }) => {
 };
 
 export default Header;
-

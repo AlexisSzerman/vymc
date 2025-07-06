@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Users,
   ClipboardList,
@@ -7,14 +7,17 @@ import {
   History,
   RefreshCcw,
   Bell,
-  ChartSpline,
-  Menu,
-  X
+  ChartSpline
 } from "lucide-react";
 
-const Navigation = ({ currentPage, setCurrentPage, authUser, isAuthorized }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
+const Navigation = ({
+  currentPage,
+  setCurrentPage,
+  authUser,
+  isAuthorized,
+  isOpen,
+  setIsOpen
+}) => {
   const publicNavItems = [
     { key: "public", label: "Vista Pública", icon: Globe },
     { key: "export", label: "Exportar Asignaciones", icon: ArrowDownFromLine },
@@ -31,13 +34,13 @@ const Navigation = ({ currentPage, setCurrentPage, authUser, isAuthorized }) => 
 
   return (
     <>
-      {/* Botón Hamburguesa (solo en móviles) */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="sm:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-indigo-600 text-white"
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
+      {/* Overlay */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 sm:hidden"
+        />
+      )}
 
       {/* Sidebar */}
       <aside
@@ -48,7 +51,9 @@ const Navigation = ({ currentPage, setCurrentPage, authUser, isAuthorized }) => 
           sm:translate-x-0 sm:relative sm:flex sm:flex-col
         `}
       >
-        <h2 className="text-lg font-semibold mb-6 text-right sm:text-left">Navegación</h2>
+        <h2 className="text-lg font-semibold mb-6 text-right sm:text-left">
+          Navegación
+        </h2>
         <nav className="flex flex-col space-y-1">
           {publicNavItems.map(({ key, label, icon: Icon }) => (
             <button
@@ -68,7 +73,8 @@ const Navigation = ({ currentPage, setCurrentPage, authUser, isAuthorized }) => 
             </button>
           ))}
 
-          {authUser && isAuthorized &&
+          {authUser &&
+            isAuthorized &&
             privateNavItems.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
