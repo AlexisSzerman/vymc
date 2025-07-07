@@ -5,7 +5,7 @@ import {
   formatDateToYYYYMMDD,
   formatAssignmentType,
 } from "../utils/helpers";
-import { Gem, Wheat, Users, ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import Loader from "../components/Loader";
 
 const appId = "default-app-id";
@@ -184,7 +184,8 @@ const PublicViewPage = ({ db, showMessage }) => {
                   if (section === "tesoros") {
                     banner = (
                       <div className="flex items-center gap-2 bg-teal-100 dark:bg-teal-700 text-teal-800 dark:text-teal-100 px-4 py-2 rounded-md my-4">
-                        <Gem className="w-5 h-5" />
+                       {/*  <Gem className="w-5 h-5" /> */}
+                       <span className="jw-icon jw-icon-092 text-2xl leading-none"></span>
                         <span className="font-semibold">
                           Tesoros de la Biblia
                         </span>
@@ -193,7 +194,8 @@ const PublicViewPage = ({ db, showMessage }) => {
                   } else if (section === "maestros") {
                     banner = (
                       <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-100 px-4 py-2 rounded-md my-4">
-                        <Wheat className="w-5 h-5" />
+                       {/*  <Wheat className="w-5 h-5" /> */}
+                       <span className="jw-icon jw-icon-236 text-2xl leading-none"></span>
                         <span className="font-semibold">
                           Seamos Mejores Maestros
                         </span>
@@ -202,7 +204,8 @@ const PublicViewPage = ({ db, showMessage }) => {
                   } else if (section === "vida") {
                     banner = (
                       <div className="flex items-center gap-2 bg-red-100 dark:bg-red-700 text-red-800 dark:text-red-100 px-4 py-2 rounded-md my-4">
-                        <Users className="w-5 h-5" />
+                        {/* <Users className="w-5 h-5" /> */}
+                        <span className="jw-icon jw-icon-187 text-2xl leading-none" />
                         <span className="font-semibold">
                           Nuestra Vida Cristiana
                         </span>

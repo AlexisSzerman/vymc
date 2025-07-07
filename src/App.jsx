@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import './assets/jw-icons.css';
+
 
 import firebaseConfig from "./utils/firebaseConfig";
 import { authorizedEmails } from "./utils/authorizedEmails";

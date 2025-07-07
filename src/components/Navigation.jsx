@@ -1,9 +1,7 @@
-import React from "react";
 import {
   Users,
   ClipboardList,
   ArrowDownFromLine,
-  Globe,
   History,
   RefreshCcw,
   Bell,
@@ -19,17 +17,49 @@ const Navigation = ({
   setIsOpen
 }) => {
   const publicNavItems = [
-    { key: "public", label: "Programa Semanal", icon: Globe },
-    { key: "export", label: "Exportar Asignaciones", icon: ArrowDownFromLine },
+    {
+      key: "public",
+      label: "Programa Semanal",
+      icon: <span className="jw-icon jw-icon-194 text-2xl leading-none" />
+    },
+    {
+      key: "export",
+      label: "Exportar Asignaciones",
+      icon: <ArrowDownFromLine className="w-5 h-5" />
+    },
   ];
 
   const privateNavItems = [
-    { key: "dashboard", label: "Estadísticas", icon: ChartSpline },
-    { key: "participants", label: "Participantes", icon: Users },
-    { key: "assignments", label: "Asignaciones", icon: ClipboardList },
-    { key: "reminders", label: "Recordatorios", icon: Bell },
-    { key: "replacements", label: "Reemplazos", icon: RefreshCcw },
-    { key: "history", label: "Historial", icon: History },
+    {
+      key: "dashboard",
+      label: "Estadísticas",
+      icon: <ChartSpline className="w-5 h-5" />
+    },
+    {
+      key: "participants",
+      label: "Participantes",
+      icon: <Users className="w-5 h-5" />
+    },
+    {
+      key: "assignments",
+      label: "Asignaciones",
+      icon: <ClipboardList className="w-5 h-5" />
+    },
+    {
+      key: "reminders",
+      label: "Recordatorios",
+      icon: <Bell className="w-5 h-5" />
+    },
+    {
+      key: "replacements",
+      label: "Reemplazos",
+      icon: <RefreshCcw className="w-5 h-5" />
+    },
+    {
+      key: "history",
+      label: "Historial",
+      icon: <History className="w-5 h-5" />
+    },
   ];
 
   return (
@@ -55,7 +85,7 @@ const Navigation = ({
           Navegación
         </h2>
         <nav className="flex flex-col space-y-1">
-          {publicNavItems.map(({ key, label, icon: Icon }) => (
+          {publicNavItems.map(({ key, label, icon }) => (
             <button
               key={key}
               onClick={() => {
@@ -68,14 +98,14 @@ const Navigation = ({
                   : "hover:bg-indigo-100 dark:hover:bg-gray-800"
               }`}
             >
-              {Icon && <Icon className="w-5 h-5" />}
+              {icon}
               {label}
             </button>
           ))}
 
           {authUser &&
             isAuthorized &&
-            privateNavItems.map(({ key, label, icon: Icon }) => (
+            privateNavItems.map(({ key, label, icon }) => (
               <button
                 key={key}
                 onClick={() => {
@@ -88,7 +118,7 @@ const Navigation = ({
                     : "hover:bg-indigo-100 dark:hover:bg-gray-800"
                 }`}
               >
-                {Icon && <Icon className="w-5 h-5" />}
+                {icon}
                 {label}
               </button>
             ))}
