@@ -13,6 +13,7 @@ const appId = "default-app-id";
 const PublicViewPage = ({ db, showMessage }) => {
   const [assignments, setAssignments] = useState([]);
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
+  const [reminderType, setReminderType] = useState(""); // <--- Add this line
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -38,14 +39,12 @@ const PublicViewPage = ({ db, showMessage }) => {
 
         const filtered = fetched
           .filter((assignment) => {
-            // Ocultar si published = false
             if (assignment.published === false) return false;
 
             const [year, month, day] = assignment.date.split("-").map(Number);
             const date = new Date(year, month - 1, day);
             return date >= startOfWeek && date <= endOfWeek;
           })
-
           .sort((a, b) => {
             const ordenA = a.orden ?? 999;
             const ordenB = b.orden ?? 999;
@@ -75,9 +74,12 @@ const PublicViewPage = ({ db, showMessage }) => {
 
     const unsubscribeReminder = onSnapshot(reminderDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        setPublicReminderMessage(docSnap.data().message || "");
+        const data = docSnap.data();
+        setPublicReminderMessage(data.message || "");
+        setReminderType(data.type || "");
       } else {
         setPublicReminderMessage("");
+        setReminderType("");
       }
     });
 
@@ -85,7 +87,23 @@ const PublicViewPage = ({ db, showMessage }) => {
       unsubscribeAssignments();
       unsubscribeReminder();
     };
-  }, [db, showMessage, weekOffset]);
+  }, [db, showMessage, weekOffset]); // Also add reminderType to the dependency array if it were used in the effect to trigger re-runs, but in this case, it's only set, not used to determine the effect's behavior.
+
+   const getIconClass = (type) => {
+    switch (type) {
+      case "Asamblea de Distrito":
+        return "jw-icon jw-icon-001";
+      case "Asamblea de Circuito":
+        return "jw-icon jw-icon-023";
+      case "Visita del Superintendente":
+        return "jw-icon jw-icon-047";
+      case "Visita Especial":
+        return "jw-icon jw-icon-195";
+      default:
+        return "";
+    }
+  };
+
 
   const { startOfWeek, endOfWeek } = getMeetingWeekDates(
     new Date(),
@@ -113,14 +131,20 @@ const PublicViewPage = ({ db, showMessage }) => {
 
       {publicReminderMessage && (
         <div className="bg-yellow-100 dark:bg-yellow-800 p-4 rounded-lg shadow-md border border-yellow-300 dark:border-yellow-700 text-center">
-          <p className="text-lg font-semibold text-yellow-800 dark:text-yellow-100">
-            ¡RECORDATORIO!
-          </p>
-          <p className="text-gray-800 dark:text-gray-200 mt-2">
-            {publicReminderMessage}
-          </p>
-        </div>
+  <p className="text-lg font-semibold text-yellow-800 dark:text-yellow-100">
+    ¡RECORDATORIO!
+  </p>
+  {reminderType && (
+    <div className="flex justify-center mt-2"> {/* New div for centering the icon */}
+      <span className={`${getIconClass(reminderType)} text-4xl`} /> {/* Increased icon size for better visibility */}
+    </div>
+  )}
+  <p className="text-gray-800 dark:text-gray-200 mt-2">
+    {publicReminderMessage}
+  </p>
+</div>
       )}
+
 
       <div className="flex justify-center mt-4 px-2">
         <div className="flex items-center bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
@@ -184,7 +208,7 @@ const PublicViewPage = ({ db, showMessage }) => {
                   if (section === "tesoros") {
                     banner = (
                       <div className="flex items-center gap-2 bg-teal-100 dark:bg-teal-700 text-teal-800 dark:text-teal-100 px-4 py-2 rounded-md my-4">
-                       {/*  <Gem className="w-5 h-5" /> */}
+                       {/* <Gem className="w-5 h-5" /> */}
                        <span className="jw-icon jw-icon-092 text-2xl leading-none"></span>
                         <span className="font-semibold">
                           Tesoros de la Biblia
@@ -194,7 +218,7 @@ const PublicViewPage = ({ db, showMessage }) => {
                   } else if (section === "maestros") {
                     banner = (
                       <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-100 px-4 py-2 rounded-md my-4">
-                       {/*  <Wheat className="w-5 h-5" /> */}
+                       {/* <Wheat className="w-5 h-5" /> */}
                        <span className="jw-icon jw-icon-236 text-2xl leading-none"></span>
                         <span className="font-semibold">
                           Seamos Mejores Maestros

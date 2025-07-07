@@ -8,12 +8,12 @@ import {
 } from 'firebase/firestore';
 import { formatDateToYYYYMMDD, formatDateAr } from '../utils/helpers';
 
-
 const appId = 'default-app-id';
 
 const ReminderManager = ({ db, showMessage }) => {
   const [reminderDate, setReminderDate] = useState(formatDateToYYYYMMDD(new Date()));
   const [reminderText, setReminderText] = useState('');
+  const [reminderType, setReminderType] = useState('');
   const [allReminders, setAllReminders] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
@@ -33,32 +33,36 @@ const ReminderManager = ({ db, showMessage }) => {
     return () => unsubscribe();
   }, [db]);
 
-const saveReminder = async () => {
-  if (!reminderDate.trim()) return showMessage('Selecciona una fecha.');
+  const saveReminder = async () => {
+    if (!reminderDate.trim()) return showMessage('Selecciona una fecha.');
 
-  try {
-    const docId = editingId || reminderDate; // Si estás editando, usá el ID original
-    const ref = doc(
-      db,
-      `artifacts/${appId}/public/data/public_reminders`,
-      docId
-    );
-    await setDoc(ref, { message: reminderText.trim() });
+    try {
+      const docId = editingId || reminderDate;
+      const ref = doc(
+        db,
+        `artifacts/${appId}/public/data/public_reminders`,
+        docId
+      );
+      await setDoc(ref, {
+        message: reminderText.trim(),
+        type: reminderType.trim()
+      });
 
-    showMessage(editingId ? 'Recordatorio actualizado.' : 'Recordatorio creado.');
-    setReminderText('');
-    setReminderDate(formatDateToYYYYMMDD(new Date()));
-    setEditingId(null);
-  } catch (err) {
-    console.error(err);
-    showMessage(`Error al guardar recordatorio: ${err.message}`);
-  }
-};
-
+      showMessage(editingId ? 'Recordatorio actualizado.' : 'Recordatorio creado.');
+      setReminderText('');
+      setReminderDate(formatDateToYYYYMMDD(new Date()));
+      setReminderType('');
+      setEditingId(null);
+    } catch (err) {
+      console.error(err);
+      showMessage(`Error al guardar recordatorio: ${err.message}`);
+    }
+  };
 
   const handleEdit = (reminder) => {
     setReminderDate(reminder.id);
     setReminderText(reminder.message);
+    setReminderType(reminder.type || '');
     setEditingId(reminder.id);
   };
 
@@ -78,7 +82,7 @@ const saveReminder = async () => {
         Recordatorio Público
       </h3>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-1">
           <label className="text-sm text-gray-300">Fecha</label>
           <input
@@ -87,6 +91,20 @@ const saveReminder = async () => {
             onChange={(e) => setReminderDate(e.target.value)}
             className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
           />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-gray-300">Tipo</label>
+          <select
+            value={reminderType}
+            onChange={(e) => setReminderType(e.target.value)}
+            className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Otros</option>
+            <option value="Asamblea de Circuito">Asamblea de Circuito</option>
+            <option value="Asamblea de Distrito">Asamblea de Distrito</option>
+            <option value="Visita del Superintendente">Visita del Superintendente</option>
+            <option value="Visita Especial">Visita Especial</option>
+          </select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm text-gray-300">Mensaje</label>
@@ -107,6 +125,7 @@ const saveReminder = async () => {
               setEditingId(null);
               setReminderText('');
               setReminderDate(formatDateToYYYYMMDD(new Date()));
+              setReminderType('');
             }}
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition"
           >
@@ -127,11 +146,13 @@ const saveReminder = async () => {
           {allReminders.map((reminder) => (
             <li
               key={reminder.id}
-             className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 bg-gray-800 border border-gray-700 p-4 rounded-xl"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 bg-gray-800 border border-gray-700 p-4 rounded-xl"
             >
               <div>
                 <p className="font-semibold text-indigo-300">{formatDateAr(reminder.id)}</p>
-                <p className="text-gray-200">{reminder.message}</p>
+                <p className="text-gray-200">
+                  {reminder.message}
+                </p>
               </div>
               <div className="flex gap-2">
                 <button
