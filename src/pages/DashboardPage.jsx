@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { Bar, Pie } from "react-chartjs-2";
 import {
@@ -10,9 +10,7 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
-import {
-  ChartSpline,
-} from "lucide-react";
+import { ChartSpline } from "lucide-react";
 
 ChartJS.register(
   CategoryScale,
@@ -38,6 +36,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const [replacements, setReplacements] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAllParticipants, setShowAllParticipants] = useState(false);
 
   useEffect(() => {
     if (!db || !authUser) return;
@@ -46,18 +45,9 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
       try {
         const [assignmentsSnap, replacementsSnap, participantsSnap] =
           await Promise.all([
-            getDocs(
-              collection(db, `artifacts/${appId}/public/data/assignments`)
-            ),
-            getDocs(
-              collection(db, `artifacts/${appId}/public/data/replacements`)
-            ),
-            getDocs(
-              collection(
-                db,
-                `artifacts/${appId}/users/${authUser.uid}/participants`
-              )
-            )
+            getDocs(collection(db, `artifacts/${appId}/public/data/assignments`)),
+            getDocs(collection(db, `artifacts/${appId}/public/data/replacements`)),
+            getDocs(collection(db, `artifacts/${appId}/users/${authUser.uid}/participants`))
           ]);
 
         const a = assignmentsSnap.docs.map((doc) => ({
@@ -98,15 +88,18 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
       !EXCLUDED_PARTICIPANTS.includes(r.newParticipantName)
   );
 
-const assignedParticipantNames = new Set();
-filteredAssignments.forEach((a) => {
-  if (a.participantName) assignedParticipantNames.add(a.participantName);
-  if (a.secondParticipantName) assignedParticipantNames.add(a.secondParticipantName);
-});
+  const normalizeName = (name) =>
+    name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-const activeParticipants = participants.filter((p) =>
-  assignedParticipantNames.has(p.name)
-);
+  const assignedParticipantNames = new Set();
+  filteredAssignments.forEach((a) => {
+    if (a.participantName) assignedParticipantNames.add(normalizeName(a.participantName));
+    if (a.secondParticipantName) assignedParticipantNames.add(normalizeName(a.secondParticipantName));
+  });
+
+  const activeParticipants = participants.filter((p) =>
+    assignedParticipantNames.has(normalizeName(p.name))
+  );
 
   // Asignaciones por mes
   const assignmentsPerMonth = {};
@@ -128,7 +121,7 @@ const activeParticipants = participants.filter((p) =>
   const pieLabels = Object.keys(replacementsPerType);
   const pieData = Object.values(replacementsPerType);
 
-  // Top participantes
+  // Top participantes (todos ordenados)
   const participantCounts = {};
   filteredAssignments.forEach((a) => {
     if (a.participantName) {
@@ -140,14 +133,21 @@ const activeParticipants = participants.filter((p) =>
         (participantCounts[a.secondParticipantName] || 0) + 1;
     }
   });
-  const topParticipants = Object.entries(participantCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+  const topParticipantsFull = Object.entries(participantCounts)
+    .sort((a, b) => b[1] - a[1]);
+
+  // Los que se muestran (5 o todos)
+  const participantsToShow = showAllParticipants
+    ? topParticipantsFull
+    : topParticipantsFull.slice(0, 5);
 
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-        Cargando estadísticas...
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+        <div className="w-12 h-12 border-4 border-gray-600 border-t-indigo-700 rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-300 text-lg font-semibold">
+          Cargando estadísticas...
+        </p>
       </div>
     );
   }
@@ -159,7 +159,7 @@ const activeParticipants = participants.filter((p) =>
         <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <p className="text-sm text-gray-500">Asignaciones creadas</p>
           <p className="text-3xl font-bold text-indigo-600">
@@ -248,13 +248,13 @@ const activeParticipants = participants.filter((p) =>
 
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
         <h3 className="text-xl font-semibold mb-4">
-          Top 5 Participantes más Asignados
+          Top Participantes más Asignados
         </h3>
-        {topParticipants.length === 0 ? (
+        {participantsToShow.length === 0 ? (
           <p className="text-gray-500">No hay datos.</p>
         ) : (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {topParticipants.map(([name, count]) => (
+            {participantsToShow.map(([name, count]) => (
               <li key={name} className="flex justify-between py-2">
                 <span className="text-gray-800 dark:text-gray-100">{name}</span>
                 <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
@@ -263,6 +263,14 @@ const activeParticipants = participants.filter((p) =>
               </li>
             ))}
           </ul>
+        )}
+        {topParticipantsFull.length > 5 && (
+          <button
+            onClick={() => setShowAllParticipants(!showAllParticipants)}
+            className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+          >
+            {showAllParticipants ? "Mostrar menos" : "Mostrar más"}
+          </button>
         )}
       </div>
     </div>

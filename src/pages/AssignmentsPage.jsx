@@ -7,7 +7,7 @@ import {
   onSnapshot,
   doc,
 } from "firebase/firestore";
-import { formatAssignmentType, calcularDiasDesde } from "../utils/helpers";
+import { formatAssignmentType, calcularDiasDesde, formatDateAr } from "../utils/helpers";
 import ConfirmDialog from "../components/ConfirmDialog";
 import {
   ClipboardList,
@@ -522,7 +522,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                     a.secondParticipantId === selectedParticipantId;
                   return (
                     <li key={i}>
-                      {a.date} - {formatAssignmentType(a.type)}:
+                      {formatDateAr(a.date)} - {formatAssignmentType(a.type)}:
                       {esTitular && (
                         <>
                           {" "}
@@ -576,7 +576,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
                     a.secondParticipantId === secondSelectedParticipantId;
                   return (
                     <li key={i}>
-                      {a.date} - {formatAssignmentType(a.type)}:
+                      {formatDateAr(a.date)} - {formatAssignmentType(a.type)}:
                       {esTitular && (
                         <>
                           {" "}
@@ -616,7 +616,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           {duplaRepetida && (
             <div className="mt-4 bg-red-900 border border-red-700 p-3 rounded text-red-200">
               ¡Advertencia! Esta dupla ya participó junta el{" "}
-              {duplaRepetida.date}.
+             {formatDateAr(duplaRepetida.date)}.
             </div>
           )}
 
@@ -802,9 +802,9 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   >
     <div className="flex-1 min-w-0">
       <p className="font-semibold text-gray-200 truncate">
-        {a.date} - {formatAssignmentType(a.type)}
+        {formatDateAr(a.date)} - {formatAssignmentType(a.type)}
       </p>
-      <p className="text-gray-300 truncate">{a.title}</p>
+      <p className="text-gray-300 break-words max-w-full">{a.title}</p>
       <p className="text-gray-300 truncate">
         {a.participantName}
         {a.secondParticipantName && ` y ${a.secondParticipantName}`}

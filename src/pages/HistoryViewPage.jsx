@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { formatAssignmentType } from '../utils/helpers';
 import { History} from "lucide-react";
+import { formatDateAr } from '../utils/helpers'; // Assuming this is the correct path for the date formatting function
 
 const appId = 'default-app-id';
 
@@ -167,7 +168,7 @@ const HistoryViewPage = ({ db, showMessage }) => {
             <li key={a.id} className="py-4 px-4 flex justify-between items-start hover:bg-gray-700 transition">
               <div>
                 <p className="font-semibold text-indigo-300">
-                  {a.date} — {formatAssignmentType(a.type)}
+                  {formatDateAr(a.date)} — {formatAssignmentType(a.type)}
                 </p>
                 <p className="text-gray-300">{a.title}</p>
                 <p className="text-indigo-400">

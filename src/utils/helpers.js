@@ -85,3 +85,10 @@ export function calcularDiasDesde(baseDate, dateString) {
   const diffTime = base - date;
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
+
+
+export function formatDateAr(isoString) {
+  if (!isoString) return "";
+  const [year, month, day] = isoString.split("-");
+  return `${day}/${month}/${year}`;
+}

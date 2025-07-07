@@ -19,7 +19,7 @@ const Navigation = ({
   setIsOpen
 }) => {
   const publicNavItems = [
-    { key: "public", label: "Vista Pública", icon: Globe },
+    { key: "public", label: "Programa Semanal", icon: Globe },
     { key: "export", label: "Exportar Asignaciones", icon: ArrowDownFromLine },
   ];
 

@@ -1,21 +1,22 @@
 import React, { useRef } from "react";
 import html2canvas from "html2canvas";
 import { CheckSquare, Square } from "lucide-react";
+import { formatDateAr, formatAssignmentType } from "../utils/helpers";
 
-const AssignmentCard = ({ assignment }) => {
+const excludedParticipants = ["A Confirmar", "Presidente"];
+const excludedTypes = ["cancion"];
+
+const AssignmentCard = ({ assignment, hideDownloadButton = false }) => {
   const cardRef = useRef();
   const downloadBtnRef = useRef();
 
-  // Opcional: Formatea el tipo de asignación en mayúscula inicial
-  const formatAssignmentType = (type) => {
-    if (!type) return "";
-    return type.charAt(0).toUpperCase() + type.slice(1);
-  };
+  const isExcluded =
+    excludedParticipants.includes(assignment.participantName) ||
+    excludedTypes.includes(assignment.type?.toLowerCase());
 
   const handleDownload = async () => {
     if (!cardRef.current) return;
 
-    // Ocultar el botón
     if (downloadBtnRef.current) {
       downloadBtnRef.current.classList.add("hidden");
     }
@@ -27,7 +28,6 @@ const AssignmentCard = ({ assignment }) => {
     link.download = `Asignacion_${assignment.participantName}_${assignment.date}.png`;
     link.click();
 
-    // Volver a mostrar el botón
     if (downloadBtnRef.current) {
       downloadBtnRef.current.classList.remove("hidden");
     }
@@ -46,14 +46,14 @@ const AssignmentCard = ({ assignment }) => {
         <strong>Nombre:</strong> {assignment.participantName}
       </p>
       <p>
-        <strong>Ayudante:</strong>{" "}
-        {assignment.secondParticipantName || "-"}
+        <strong>Ayudante:</strong> {assignment.secondParticipantName || "-"}
       </p>
       <p>
-        <strong>Fecha:</strong> {assignment.date}
+        <strong>Fecha:</strong> {formatDateAr(assignment.date)}
       </p>
       <p>
-        <strong>Intervención:</strong><br />
+        <strong>Intervención:</strong>
+        <br />
         {formatAssignmentType(assignment.type)} – {assignment.title}
       </p>
 
@@ -77,20 +77,23 @@ const AssignmentCard = ({ assignment }) => {
       </div>
 
       <p className="text-[11px] italic mt-2">
-        Nota al estudiante: En la Guía de actividades encontrará la información que necesita para su intervención. Repase también las indicaciones que se describen en las Instrucciones para la reunión Vida y Ministerio Cristianos (S-38).
+        Nota al estudiante: En la Guía de actividades encontrará la información que
+        necesita para su intervención. Repase también las indicaciones que se
+        describen en las Instrucciones para la reunión Vida y Ministerio Cristianos
+        (S-38).
       </p>
 
-      <p className="text-[10px] text-right mt-1">
-        S-89-S 11/23
-      </p>
+      <p className="text-[10px] text-right mt-1">S-89-S 11/23</p>
 
-      <button
-        ref={downloadBtnRef}
-        onClick={handleDownload}
-        className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1 rounded w-full"
-      >
-        Descargar imagen
-      </button>
+      {!isExcluded && !hideDownloadButton && (
+        <button
+          ref={downloadBtnRef}
+          onClick={handleDownload}
+          className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1 rounded w-full"
+        >
+          Descargar imagen
+        </button>
+      )}
     </div>
   );
 };

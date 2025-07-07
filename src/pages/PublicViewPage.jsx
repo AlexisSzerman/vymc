@@ -5,7 +5,7 @@ import {
   formatDateToYYYYMMDD,
   formatAssignmentType,
 } from "../utils/helpers";
-import { Gem, Wheat, Users } from "lucide-react";
+import { Gem, Wheat, Users, ChevronRight, ChevronLeft } from "lucide-react";
 import Loader from "../components/Loader";
 
 const appId = "default-app-id";
@@ -123,29 +123,31 @@ const PublicViewPage = ({ db, showMessage }) => {
       )}
 
       <div className="flex justify-center mt-4 px-2">
-        <div className="flex flex-col sm:flex-row items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-y sm:divide-y-0 sm:divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
+          {/* Botón anterior */}
           <button
             onClick={() => setWeekOffset((prev) => prev - 1)}
-            className="w-full sm:w-auto px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
           >
-            Anterior
+            <ChevronLeft  className="w-7 h-7" strokeWidth={3} />
           </button>
-          <span className="w-full sm:w-auto px-4 py-2 text-center break-words">
-            <span className="sm:hidden">
+
+          {/* Texto de la semana */}
+          <div className="flex-1 px-4 py-2 text-center whitespace-nowrap">
+            <span className="block">
               {weekOffset === 0 ? "Esta semana:" : "Semana del:"}
-              <br />
+            </span>
+            <span className="block font-semibold">
               {formattedStartDate} - {formattedEndDate}
             </span>
-            <span className="hidden sm:inline">
-              {weekOffset === 0 ? "Esta semana:" : "Semana del:"}{" "}
-              {formattedStartDate} - {formattedEndDate}
-            </span>
-          </span>
+          </div>
+
+          {/* Botón siguiente */}
           <button
             onClick={() => setWeekOffset((prev) => prev + 1)}
-            className="w-full sm:w-auto px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
           >
-            Siguiente 
+            <ChevronRight className="w-7 h-7" strokeWidth={3} />
           </button>
         </div>
       </div>

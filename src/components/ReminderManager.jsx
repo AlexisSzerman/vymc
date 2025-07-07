@@ -6,7 +6,8 @@ import {
   setDoc,
   deleteDoc
 } from 'firebase/firestore';
-import { formatDateToYYYYMMDD } from '../utils/helpers';
+import { formatDateToYYYYMMDD, formatDateAr } from '../utils/helpers';
+
 
 const appId = 'default-app-id';
 
@@ -32,22 +33,28 @@ const ReminderManager = ({ db, showMessage }) => {
     return () => unsubscribe();
   }, [db]);
 
-  const saveReminder = async () => {
-    if (!reminderDate.trim()) return showMessage('Selecciona una fecha.');
+const saveReminder = async () => {
+  if (!reminderDate.trim()) return showMessage('Selecciona una fecha.');
 
-    try {
-      const ref = doc(db, `artifacts/${appId}/public/data/public_reminders`, reminderDate);
-      await setDoc(ref, { message: reminderText.trim() });
+  try {
+    const docId = editingId || reminderDate; // Si estás editando, usá el ID original
+    const ref = doc(
+      db,
+      `artifacts/${appId}/public/data/public_reminders`,
+      docId
+    );
+    await setDoc(ref, { message: reminderText.trim() });
 
-      showMessage(editingId ? 'Recordatorio actualizado.' : 'Recordatorio creado.');
-      setReminderText('');
-      setReminderDate(formatDateToYYYYMMDD(new Date()));
-      setEditingId(null);
-    } catch (err) {
-      console.error(err);
-      showMessage(`Error al guardar recordatorio: ${err.message}`);
-    }
-  };
+    showMessage(editingId ? 'Recordatorio actualizado.' : 'Recordatorio creado.');
+    setReminderText('');
+    setReminderDate(formatDateToYYYYMMDD(new Date()));
+    setEditingId(null);
+  } catch (err) {
+    console.error(err);
+    showMessage(`Error al guardar recordatorio: ${err.message}`);
+  }
+};
+
 
   const handleEdit = (reminder) => {
     setReminderDate(reminder.id);
@@ -120,10 +127,10 @@ const ReminderManager = ({ db, showMessage }) => {
           {allReminders.map((reminder) => (
             <li
               key={reminder.id}
-              className="flex justify-between items-start bg-gray-800 border border-gray-700 p-4 rounded-xl"
+             className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 bg-gray-800 border border-gray-700 p-4 rounded-xl"
             >
               <div>
-                <p className="font-semibold text-indigo-300">{reminder.id}</p>
+                <p className="font-semibold text-indigo-300">{formatDateAr(reminder.id)}</p>
                 <p className="text-gray-200">{reminder.message}</p>
               </div>
               <div className="flex gap-2">
