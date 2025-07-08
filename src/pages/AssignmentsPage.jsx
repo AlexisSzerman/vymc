@@ -7,11 +7,13 @@ import {
   onSnapshot,
   doc,
 } from "firebase/firestore";
-import { formatAssignmentType, calcularDiasDesde, formatDateAr } from "../utils/helpers";
-import ConfirmDialog from "../components/ConfirmDialog";
 import {
-  ClipboardList,
-} from "lucide-react";
+  formatAssignmentType,
+  calcularDiasDesde,
+  formatDateAr,
+} from "../utils/helpers";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { ClipboardList } from "lucide-react";
 
 const appId = "default-app-id";
 
@@ -386,14 +388,14 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   return (
     <div className="space-y-8">
       {/* Encabezado */}
-            <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
+      <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
         <ClipboardList className="w-6 h-6" /> Gestión de Asignaciones
       </h2>
 
       {/* Formulario */}
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <label className="text-indigo-200 font-semibold">
-          Seleccionar fecha:
+          Seleccionar fecha de nueva reunión:
         </label>
         <input
           type="date"
@@ -616,7 +618,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           {duplaRepetida && (
             <div className="mt-4 bg-red-900 border border-red-700 p-3 rounded text-red-200">
               ¡Advertencia! Esta dupla ya participó junta el{" "}
-             {formatDateAr(duplaRepetida.date)}.
+              {formatDateAr(duplaRepetida.date)}.
             </div>
           )}
 
@@ -736,21 +738,21 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           </div>
         </form>
       )}
-
+      <hr />
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center">
+      <div className="flex flex-col gap-4 items-center sm:flex-row">
         <input
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
-          className="p-2 rounded bg-gray-600 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+          className="p-2 rounded bg-gray-600 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500 max-w-xs"
         />
         <input
           type="text"
           value={filterName}
           onChange={(e) => setFilterName(e.target.value)}
           placeholder="Buscar por nombre"
-          className="p-2 rounded bg-gray-600 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+          className="p-2 rounded bg-gray-600 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto"
         />
         <button
           onClick={() => {
@@ -763,100 +765,111 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         </button>
       </div>
 
-      {/* Listado */}
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-indigo-300">
-          Próximas Asignaciones
-        </h3>
-        {currentAssignments.length > 0 && (
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={async () => {
-                const batch = currentAssignments
-                  .filter((a) => a.published === false)
-                  .map((a) =>
-                    updateDoc(
-                      doc(
-                        db,
-                        `artifacts/${appId}/public/data/assignments`,
-                        a.id
-                      ),
-                      { published: true }
-                    )
-                  );
-
-                await Promise.all(batch);
-                showMessage("Todas las asignaciones filtradas se publicaron.");
-              }}
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition"
-            >
-              Publicar Todo
-            </button>
-          </div>
-        )}
-
-        {currentAssignments.map((a) => (
-  <div
-    key={a.id}
-    className="p-4 border border-gray-700 bg-gray-800 rounded flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0"
-  >
-    <div className="flex-1 min-w-0">
-      <p className="font-semibold text-gray-200 truncate">
-        {formatDateAr(a.date)} - {formatAssignmentType(a.type)}
-      </p>
-      <p className="text-gray-300 break-words max-w-full">{a.title}</p>
-      <p className="text-gray-300 truncate">
-        {a.participantName}
-        {a.secondParticipantName && ` y ${a.secondParticipantName}`}
-      </p>
-      <p className="text-gray-400 text-sm">Orden: {a.orden}</p>
-    </div>
-    <div className="flex gap-2 overflow-x-auto sm:overflow-visible">
+     {/* Listado */}
+<div className="space-y-2">
+  <h3 className="text-xl font-semibold text-indigo-300">
+    Próximas Asignaciones
+  </h3>
+  {currentAssignments.length > 0 && (
+    <div className="flex justify-end mb-4">
       <button
-        onClick={() => handleEdit(a)}
-        className="flex-shrink-0 px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded transition whitespace-nowrap"
-      >
-        Editar
-      </button>
-      <button
-        onClick={() => setAssignmentToDelete(a)}
-        className="flex-shrink-0 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition whitespace-nowrap"
-      >
-        Eliminar
-      </button>
-      {a.published === false ? (
-        <button
-          onClick={async () => {
-            await updateDoc(
-              doc(db, `artifacts/${appId}/public/data/assignments`, a.id),
-              { published: true }
+        onClick={async () => {
+          const batch = currentAssignments
+            .filter((a) => a.published === false)
+            .map((a) =>
+              updateDoc(
+                doc(
+                  db,
+                  `artifacts/${appId}/public/data/assignments`,
+                  a.id
+                ),
+                { published: true }
+              )
             );
-            showMessage("Asignación publicada.");
-          }}
-          className="flex-shrink-0 px-3 py-1 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition whitespace-nowrap"
-        >
-          Publicar
-        </button>
-      ) : (
-        <button
-          onClick={async () => {
-            await updateDoc(
-              doc(db, `artifacts/${appId}/public/data/assignments`, a.id),
-              { published: false }
-            );
-            showMessage("Asignación ocultada.");
-          }}
-          className="flex-shrink-0 px-3 py-1 bg-slate-500 hover:bg-slate-700 text-white rounded transition whitespace-nowrap"
-        >
-          Ocultar
-        </button>
-      )}
-    </div>
-  </div>
-))}
 
+          await Promise.all(batch);
+          showMessage("Todas las asignaciones filtradas se publicaron.");
+        }}
+        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition"
+      >
+        Publicar Todo
+      </button>
+    </div>
+  )}
+
+  {currentAssignments.map((a) => (
+    <div
+      key={a.id}
+      className="p-4 border border-gray-700 bg-gray-800 rounded flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0"
+    >
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-gray-200 truncate">
+          {formatDateAr(a.date)} - {formatAssignmentType(a.type)}
+        </p>
+        <p className="text-gray-300 break-words max-w-full">{a.title}</p>
+        <p className="text-gray-300 truncate">
+          {a.participantName}
+          {a.secondParticipantName && ` y ${a.secondParticipantName}`}
+        </p>
+        <p className="text-gray-400 text-sm">Orden: {a.orden}</p>
       </div>
 
+      {/* THIS IS THE MODIFIED BLOCK FOR BUTTONS */}
+      <div className="flex w-full overflow-x-auto sm:overflow-visible sm:w-auto">
+        {/* Inner div to manage button alignment */}
+        <div className="flex flex-grow justify-end gap-2 pr-2 sm:pr-0">
+          <button
+            onClick={() => handleEdit(a)}
+            className="flex-shrink-0 px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded transition whitespace-nowrap"
+          >
+            Editar
+          </button>
+          <button
+            onClick={() => setAssignmentToDelete(a)}
+            className="flex-shrink-0 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition whitespace-nowrap"
+          >
+            Eliminar
+          </button>
+          {a.published === false ? (
+          <button
+            onClick={async () => {
+              await updateDoc(
+                doc(
+                  db,
+                  `artifacts/${appId}/public/data/assignments`,
+                  a.id
+                ),
+                { published: true }
+              );
+              showMessage("Asignación publicada.");
+            }}
+            className="flex-shrink-0 px-3 py-1 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition whitespace-nowrap"
+          >
+            Publicar
+          </button>
+          ) : (
+          <button
+            onClick={async () => {
+              await updateDoc(
+                doc(
+                  db,
+                  `artifacts/${appId}/public/data/assignments`,
+                  a.id
+                ),
+                { published: false }
+              );
+              showMessage("Asignación ocultada.");
+            }}
+            className="flex-shrink-0 px-3 py-1 bg-slate-500 hover:bg-slate-700 text-white rounded transition whitespace-nowrap"
+          >
+            Ocultar
+          </button>
+          )}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
       {/* ConfirmDialog */}
       {assignmentToDelete && (
         <ConfirmDialog

@@ -197,6 +197,8 @@ const PublicViewPage = ({ db, showMessage }) => {
           const shownSections = new Set();
 
           return (
+
+            <div className="mx-auto px-4 max-w-screen-lg">
             <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
               {assignments.map((assignment) => {
                 const section = SECTION_MAP[assignment.type];
@@ -261,6 +263,7 @@ const PublicViewPage = ({ db, showMessage }) => {
                 );
               })}
             </ul>
+            </div>
           );
         })()
       )}

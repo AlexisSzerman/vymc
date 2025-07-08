@@ -154,7 +154,7 @@ const ReminderManager = ({ db, showMessage }) => {
                   {reminder.message}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-end mt-2 sm:mt-0">
                 <button
                   onClick={() => handleEdit(reminder)}
                   className="bg-orange-400 text-white px-3 py-1 rounded-lg hover:bg-orange-700 transition"
