@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { collection, doc, onSnapshot } from "firebase/firestore";
-
 import {
   getMeetingWeekDates,
   formatDateToYYYYMMDD,
   formatAssignmentType,
 } from "../utils/helpers";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import Loader from "../components/Loader";
 
 const appId = "default-app-id";
 
-const PublicViewPage = ({ db, showMessage,  }) => {
+const PublicViewPage = ({ db, showMessage }) => {
   const [assignments, setAssignments] = useState([]);
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
+  const [reminderType, setReminderType] = useState(""); // <--- Add this line
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
-
 
   useEffect(() => {
     if (!db) return;
@@ -38,6 +39,8 @@ const PublicViewPage = ({ db, showMessage,  }) => {
 
         const filtered = fetched
           .filter((assignment) => {
+            if (assignment.published === false) return false;
+
             const [year, month, day] = assignment.date.split("-").map(Number);
             const date = new Date(year, month - 1, day);
             return date >= startOfWeek && date <= endOfWeek;
@@ -71,9 +74,12 @@ const PublicViewPage = ({ db, showMessage,  }) => {
 
     const unsubscribeReminder = onSnapshot(reminderDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        setPublicReminderMessage(docSnap.data().message || "");
+        const data = docSnap.data();
+        setPublicReminderMessage(data.message || "");
+        setReminderType(data.type || "");
       } else {
         setPublicReminderMessage("");
+        setReminderType("");
       }
     });
 
@@ -81,12 +87,23 @@ const PublicViewPage = ({ db, showMessage,  }) => {
       unsubscribeAssignments();
       unsubscribeReminder();
     };
-  }, [db, showMessage, weekOffset]);
-/* 
-  const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
-  const handlePreviousWeek = () => {
-    setWeekOffset((prev) => (prev > 0 ? prev - 1 : 0));
-  }; */
+  }, [db, showMessage, weekOffset]); // Also add reminderType to the dependency array if it were used in the effect to trigger re-runs, but in this case, it's only set, not used to determine the effect's behavior.
+
+   const getIconClass = (type) => {
+    switch (type) {
+      case "Asamblea de Distrito":
+        return "jw-icon jw-icon-001";
+      case "Asamblea de Circuito":
+        return "jw-icon jw-icon-023";
+      case "Visita del Superintendente":
+        return "jw-icon jw-icon-047";
+      case "Visita Especial":
+        return "jw-icon jw-icon-195";
+      default:
+        return "";
+    }
+  };
+
 
   const { startOfWeek, endOfWeek } = getMeetingWeekDates(
     new Date(),
@@ -103,11 +120,7 @@ const PublicViewPage = ({ db, showMessage,  }) => {
   });
 
   if (loading) {
-    return (
-      <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-        Cargando asignaciones...
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
@@ -118,59 +131,141 @@ const PublicViewPage = ({ db, showMessage,  }) => {
 
       {publicReminderMessage && (
         <div className="bg-yellow-100 dark:bg-yellow-800 p-4 rounded-lg shadow-md border border-yellow-300 dark:border-yellow-700 text-center">
-          <p className="text-lg font-semibold text-yellow-800 dark:text-yellow-100">
-            ¡RECORDATORIO!
-          </p>
-          <p className="text-gray-800 dark:text-gray-200 mt-2">
-            {publicReminderMessage}
-          </p>
-        </div>
+  <p className="text-lg font-semibold text-yellow-800 dark:text-yellow-100">
+    ¡RECORDATORIO!
+  </p>
+  {reminderType && (
+    <div className="flex justify-center mt-2"> {/* New div for centering the icon */}
+      <span className={`${getIconClass(reminderType)} text-4xl`} /> {/* Increased icon size for better visibility */}
+    </div>
+  )}
+  <p className="text-gray-800 dark:text-gray-200 mt-2">
+    {publicReminderMessage}
+  </p>
+</div>
       )}
 
-<div className="flex justify-center mt-4">
-  <div className="flex items-center bg-gray-200 dark:bg-gray-700 text-blue-700 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600">
-    <button
-      onClick={() => setWeekOffset((prev) => prev - 1)}
-      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-    >
-      ◀ Anterior
-    </button>
-    <span className="px-4 py-2 whitespace-nowrap">
-      {weekOffset === 0 ? "Esta semana:" : "Semana del:"}{" "}
-      {formattedStartDate} - {formattedEndDate}
-    </span>
-    <button
-      onClick={() => setWeekOffset((prev) => prev + 1)}
-      className="px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-    >
-      Siguiente ▶
-    </button>
-  </div>
-</div>
+
+      <div className="flex justify-center mt-4 px-2">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
+          {/* Botón anterior */}
+          <button
+            onClick={() => setWeekOffset((prev) => prev - 1)}
+            className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+          >
+            <ChevronLeft  className="w-7 h-7" strokeWidth={3} />
+          </button>
+
+          {/* Texto de la semana */}
+          <div className="flex-1 px-4 py-2 text-center whitespace-nowrap">
+            <span className="block">
+              {weekOffset === 0 ? "Esta semana:" : "Semana del:"}
+            </span>
+            <span className="block font-semibold">
+              {formattedStartDate} - {formattedEndDate}
+            </span>
+          </div>
+
+          {/* Botón siguiente */}
+          <button
+            onClick={() => setWeekOffset((prev) => prev + 1)}
+            className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+          >
+            <ChevronRight className="w-7 h-7" strokeWidth={3} />
+          </button>
+        </div>
+      </div>
 
       {assignments.length === 0 ? (
         <p className="text-center text-gray-600 dark:text-gray-400 py-4">
           No hay asignaciones programadas para la semana seleccionada.
         </p>
       ) : (
-        <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
-          {assignments.map((assignment) => (
-            <li key={assignment.id} className="py-4">
-              <p className="text-lg text-gray-700 dark:text-gray-300">
-                <span>{formatAssignmentType(assignment.type)}</span> : {assignment.title}
-              </p>
-              <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
-                {assignment.participantName && (
-                  <>Asignado a: {assignment.participantName}</>
-                )}
-                {assignment.type === "demostracion" &&
-                  assignment.secondParticipantName && (
-                    <> y {assignment.secondParticipantName}</>
-                  )}
-              </p>
-            </li>
-          ))}
-        </ul>
+        (() => {
+          const SECTION_MAP = {
+            tesoros: "tesoros",
+            "perlas-escondidas": "tesoros",
+            "lectura-biblia": "tesoros",
+            demostracion: "maestros",
+            discurso: "maestros",
+            "nuestra-vida-cristiana": "vida",
+            "conduccion-estudio-biblico": "vida",
+            "lectura-libro": "vida",
+            necesidades: "vida",
+          };
+
+          const shownSections = new Set();
+
+          return (
+
+            <div className="mx-auto px-4 max-w-screen-lg">
+            <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
+              {assignments.map((assignment) => {
+                const section = SECTION_MAP[assignment.type];
+                let banner = null;
+
+                if (section && !shownSections.has(section)) {
+                  shownSections.add(section);
+
+                  if (section === "tesoros") {
+                    banner = (
+                      <div className="flex items-center gap-2 bg-teal-100 dark:bg-teal-700 text-teal-800 dark:text-teal-100 px-4 py-2 rounded-md my-4">
+                       {/* <Gem className="w-5 h-5" /> */}
+                       <span className="jw-icon jw-icon-092 text-2xl leading-none"></span>
+                        <span className="font-semibold">
+                          Tesoros de la Biblia
+                        </span>
+                      </div>
+                    );
+                  } else if (section === "maestros") {
+                    banner = (
+                      <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-100 px-4 py-2 rounded-md my-4">
+                       {/* <Wheat className="w-5 h-5" /> */}
+                       <span className="jw-icon jw-icon-236 text-2xl leading-none"></span>
+                        <span className="font-semibold">
+                          Seamos Mejores Maestros
+                        </span>
+                      </div>
+                    );
+                  } else if (section === "vida") {
+                    banner = (
+                      <div className="flex items-center gap-2 bg-red-100 dark:bg-red-700 text-red-800 dark:text-red-100 px-4 py-2 rounded-md my-4">
+                        {/* <Users className="w-5 h-5" /> */}
+                        <span className="jw-icon jw-icon-187 text-2xl leading-none" />
+                        <span className="font-semibold">
+                          Nuestra Vida Cristiana
+                        </span>
+                      </div>
+                    );
+                  }
+                }
+
+                return (
+                  <React.Fragment key={assignment.id}>
+                    {banner}
+                    <li className="py-4">
+                      <p className="text-lg text-gray-700 dark:text-gray-300">
+                        <span className="text-lg text-gray-900 dark:text-white font-bold">
+                          {formatAssignmentType(assignment.type)}
+                        </span>
+                        {assignment.title && <>: {assignment.title}</>}
+                      </p>
+                      <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
+                        {assignment.participantName && (
+                          <>Asignado a: {assignment.participantName}</>
+                        )}
+                        {assignment.secondParticipantName && (
+                          <> y {assignment.secondParticipantName}</>
+                        )}
+                      </p>
+                    </li>
+                  </React.Fragment>
+                );
+              })}
+            </ul>
+            </div>
+          );
+        })()
       )}
     </div>
   );

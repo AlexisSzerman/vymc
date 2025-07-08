@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import './assets/jw-icons.css';
+
 
 import firebaseConfig from "./utils/firebaseConfig";
 import { authorizedEmails } from "./utils/authorizedEmails";
@@ -17,7 +19,7 @@ import ExportAssignmentsPage from "./pages/ExportAssignmentsPage";
 import MessageBox from "./components/MessageBox";
 import ConfirmDialog from "./components/ConfirmDialog";
 import Navigation from "./components/Navigation";
-import Header from "./components/Header"; 
+import Header from "./components/Header";
 import DashboardPage from "./pages/DashboardPage";
 
 const App = () => {
@@ -48,7 +50,12 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (!authUser && currentPage !== "public" && currentPage !== "login") {
+    if (
+      !authUser &&
+      currentPage !== "public" &&
+      currentPage !== "login" &&
+      currentPage !== "export"
+    ) {
       setCurrentPage("login");
     }
   }, [authUser, currentPage]);
@@ -81,14 +88,16 @@ const App = () => {
     if (confirmDialog.resolve) confirmDialog.resolve(false);
     setConfirmDialog({ ...confirmDialog, visible: false });
   };
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isAuthorized = authUser && authorizedEmails.includes(authUser.email);
 
   if (!authChecked) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-        <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-          Verificando sesión...
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+        <div className="w-12 h-12 border-4 border-gray-600 border-t-indigo-700 rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-300 text-lg font-semibold">
+          Verificando Sesión
         </p>
       </div>
     );
@@ -96,19 +105,25 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 font-inter text-gray-800 dark:text-gray-100">
+      {/* <Header authUser={authUser} setCurrentPage={setCurrentPage} /> */}
       <Header
-        authUser={authUser}
-        setCurrentPage={setCurrentPage}
-      />
+  setCurrentPage={setCurrentPage}
+  isMenuOpen={menuOpen}
+  toggleMenu={() => setMenuOpen(!menuOpen)}
+/>
+
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        {authUser && (
-          <Navigation
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+
+<Navigation
+  currentPage={currentPage}
+  setCurrentPage={setCurrentPage}
+  authUser={authUser}
+  isAuthorized={isAuthorized}
+  isOpen={menuOpen}
+  setIsOpen={setMenuOpen}
+/>
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-auto">
@@ -123,21 +138,29 @@ const App = () => {
             />
           )}
 
-
-          {!authUser && currentPage !== "public" && (
-            <LoginPage
-              onLoginSuccess={(user) => {
-                setAuthUser(user);
-                setCurrentPage("public");
-              }}
-            />
-          )}
+          {!authUser &&
+            currentPage !== "public" &&
+            currentPage !== "export" && (
+              <LoginPage
+                onLoginSuccess={(user) => {
+                  setAuthUser(user);
+                  setCurrentPage("public");
+                }}
+              />
+            )}
 
           {currentPage === "public" && db && (
             <PublicView
               db={db}
               showMessage={showMessage}
               setCurrentPage={setCurrentPage}
+            />
+          )}
+          {currentPage === "export" && db && (
+            <ExportAssignmentsPage
+              db={db}
+              showMessage={showMessage}
+              publicView={true}
             />
           )}
 
@@ -149,23 +172,36 @@ const App = () => {
               <strong>alexszer1986@gmail.com</strong>.
             </p>
           )}
-           {currentPage === "dashboard" && (
-              <DashboardPage db={db} showMessage={showMessage} authUser={authUser} />
-            )}
-            {currentPage === "export" && (
-              <ExportAssignmentsPage db={db} showMessage={showMessage} />
-            )}
+          {currentPage === "dashboard" && (
+            <DashboardPage
+              db={db}
+              showMessage={showMessage}
+              authUser={authUser}
+            />
+          )}
           {authUser && isAuthorized && currentPage === "participants" && db && (
-            <Participants db={db} userId={authUser.uid} showMessage={showMessage} />
+            <Participants
+              db={db}
+              userId={authUser.uid}
+              showMessage={showMessage}
+            />
           )}
           {authUser && isAuthorized && currentPage === "assignments" && db && (
-            <Assignments db={db} userId={authUser.uid} showMessage={showMessage} />
+            <Assignments
+              db={db}
+              userId={authUser.uid}
+              showMessage={showMessage}
+            />
           )}
           {authUser && isAuthorized && currentPage === "history" && db && (
             <HistoryView db={db} showMessage={showMessage} />
           )}
           {authUser && isAuthorized && currentPage === "reminders" && db && (
-            <RemindersPage db={db} userId={authUser.uid} showMessage={showMessage} />
+            <RemindersPage
+              db={db}
+              userId={authUser.uid}
+              showMessage={showMessage}
+            />
           )}
           {authUser && isAuthorized && currentPage === "replacements" && db && (
             <ReplacementsPage

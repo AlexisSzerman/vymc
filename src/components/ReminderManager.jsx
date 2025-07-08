@@ -6,13 +6,14 @@ import {
   setDoc,
   deleteDoc
 } from 'firebase/firestore';
-import { formatDateToYYYYMMDD } from '../utils/helpers';
+import { formatDateToYYYYMMDD, formatDateAr } from '../utils/helpers';
 
 const appId = 'default-app-id';
 
 const ReminderManager = ({ db, showMessage }) => {
   const [reminderDate, setReminderDate] = useState(formatDateToYYYYMMDD(new Date()));
   const [reminderText, setReminderText] = useState('');
+  const [reminderType, setReminderType] = useState('');
   const [allReminders, setAllReminders] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
@@ -36,12 +37,21 @@ const ReminderManager = ({ db, showMessage }) => {
     if (!reminderDate.trim()) return showMessage('Selecciona una fecha.');
 
     try {
-      const ref = doc(db, `artifacts/${appId}/public/data/public_reminders`, reminderDate);
-      await setDoc(ref, { message: reminderText.trim() });
+      const docId = editingId || reminderDate;
+      const ref = doc(
+        db,
+        `artifacts/${appId}/public/data/public_reminders`,
+        docId
+      );
+      await setDoc(ref, {
+        message: reminderText.trim(),
+        type: reminderType.trim()
+      });
 
       showMessage(editingId ? 'Recordatorio actualizado.' : 'Recordatorio creado.');
       setReminderText('');
       setReminderDate(formatDateToYYYYMMDD(new Date()));
+      setReminderType('');
       setEditingId(null);
     } catch (err) {
       console.error(err);
@@ -52,6 +62,7 @@ const ReminderManager = ({ db, showMessage }) => {
   const handleEdit = (reminder) => {
     setReminderDate(reminder.id);
     setReminderText(reminder.message);
+    setReminderType(reminder.type || '');
     setEditingId(reminder.id);
   };
 
@@ -68,10 +79,10 @@ const ReminderManager = ({ db, showMessage }) => {
   return (
     <div className="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-700 space-y-6">
       <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-        📌 Recordatorio Público
+        Recordatorio Público
       </h3>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-1">
           <label className="text-sm text-gray-300">Fecha</label>
           <input
@@ -80,6 +91,20 @@ const ReminderManager = ({ db, showMessage }) => {
             onChange={(e) => setReminderDate(e.target.value)}
             className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
           />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-gray-300">Tipo</label>
+          <select
+            value={reminderType}
+            onChange={(e) => setReminderType(e.target.value)}
+            className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Otros</option>
+            <option value="Asamblea de Circuito">Asamblea de Circuito</option>
+            <option value="Asamblea de Distrito">Asamblea de Distrito</option>
+            <option value="Visita del Superintendente">Visita del Superintendente</option>
+            <option value="Visita Especial">Visita Especial</option>
+          </select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm text-gray-300">Mensaje</label>
@@ -100,6 +125,7 @@ const ReminderManager = ({ db, showMessage }) => {
               setEditingId(null);
               setReminderText('');
               setReminderDate(formatDateToYYYYMMDD(new Date()));
+              setReminderType('');
             }}
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition"
           >
@@ -120,22 +146,24 @@ const ReminderManager = ({ db, showMessage }) => {
           {allReminders.map((reminder) => (
             <li
               key={reminder.id}
-              className="flex justify-between items-start bg-gray-800 border border-gray-700 p-4 rounded-xl"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 bg-gray-800 border border-gray-700 p-4 rounded-xl"
             >
               <div>
-                <p className="font-semibold text-indigo-300">{reminder.id}</p>
-                <p className="text-gray-200">{reminder.message}</p>
+                <p className="font-semibold text-indigo-300">{formatDateAr(reminder.id)}</p>
+                <p className="text-gray-200">
+                  {reminder.message}
+                </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-end mt-2 sm:mt-0">
                 <button
                   onClick={() => handleEdit(reminder)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-400 transition"
+                  className="bg-orange-400 text-white px-3 py-1 rounded-lg hover:bg-orange-700 transition"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(reminder)}
-                  className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-500 transition"
+                  className=" text-white px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 transition"
                 >
                   Eliminar
                 </button>

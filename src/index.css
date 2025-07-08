@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* iconos jw */
+
+@font-face {
+  font-family: 'JWIcons';
+  src: url("/fonts/jw-icons.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.jw-icon {
+  font-family: 'JWIcons';
+  font-style: normal;
+  font-weight: normal;
+  display: inline-block;
+  speak: none;
+}
+
+
 /* Personalizaciones opcionales aquí */
 
 /* ======= Tipografía y diseño base ======= */
