@@ -101,9 +101,10 @@ const ReminderManager = ({ db, showMessage }) => {
           >
             <option value="">Otros</option>
             <option value="Asamblea de Circuito">Asamblea de Circuito</option>
-            <option value="Asamblea de Distrito">Asamblea de Distrito</option>
+            <option value="Asamblea Regional">Asamblea Regional</option>
             <option value="Visita del Superintendente">Visita del Superintendente</option>
             <option value="Visita Especial">Visita Especial</option>
+            <option value="Conmemoración">Conmemoración</option>
           </select>
         </div>
         <div className="flex flex-col gap-1">

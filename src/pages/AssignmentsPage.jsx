@@ -1,272 +1,92 @@
-import React, { useState, useEffect } from "react";
-import {
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  doc,
-} from "firebase/firestore";
-import { formatAssignmentType } from "../utils/helpers";
+import React from "react";
+import { ClipboardList } from "lucide-react";
 import ConfirmDialog from "../components/ConfirmDialog";
+import AssignmentForm from "../components/AssignmentForm";
+import AssignmentFilters from "../components/AssignmentFilters";
+import AssignmentList from "../components/AssignmentList";
+import useAssignmentsData from "../hooks/useAssignmentsData";
+import useAssignmentForm from "../hooks/useAssignmentForm";
+import useAssignmentFilters from "../hooks/useAssignmentFilters";
+import useAssignmentSuggestions from "../hooks/useAssignmentSuggestions";
+import useConfirmDialog from "../hooks/useConfirmDialog";
+import { deleteDoc, doc } from "firebase/firestore";
+
 
 const appId = "default-app-id";
 
 const AssignmentsPage = ({ db, userId, showMessage }) => {
-  const [participants, setParticipants] = useState([]);
-  const [allAssignments, setAllAssignments] = useState([]);
-  const [currentAssignments, setCurrentAssignments] = useState([]);
-  const [meetingDate, setMeetingDate] = useState("");
-  const [selectedType, setSelectedType] = useState("discurso");
-  const [assignmentTitle, setAssignmentTitle] = useState("");
-  const [selectedParticipantId, setSelectedParticipantId] = useState("");
-  const [secondSelectedParticipantId, setSecondSelectedParticipantId] = useState("");
-  const [assignmentOrder, setAssignmentOrder] = useState("");
-  const [editingAssignment, setEditingAssignment] = useState(null);
-  const [filterDate, setFilterDate] = useState("");
-  const [filterName, setFilterName] = useState("");
-  const [assignmentToDelete, setAssignmentToDelete] = useState(null);
+  // Hooks para manejar los datos de Firestore
+  // 'participants' fetched here will now include the 'excludedFromAssignmentTypes' array for each participant
+  const { participants, allAssignments, replacements } = useAssignmentsData(db, userId, appId);
 
-  const resetForm = () => {
-    setEditingAssignment(null);
-    setSelectedType("discurso");
-    setAssignmentTitle("");
-    setAssignmentOrder("");
-    setSelectedParticipantId("");
-    setSecondSelectedParticipantId("");
-  };
+  // Hook para manejar el diálogo de confirmación
+  const { confirmDialog, showConfirm, handleConfirmClose } = useConfirmDialog();
 
-  useEffect(() => {
-    if (!db || !userId) return;
+  // Hook para manejar el formulario de asignaciones
+  const {
+    meetingDate,
+    setMeetingDate,
+    selectedType,
+    setSelectedType,
+    assignmentTitle,
+    setAssignmentTitle,
+    selectedParticipantId,
+    setSelectedParticipantId,
+    secondSelectedParticipantId,
+    setSecondSelectedParticipantId,
+    assignmentOrder,
+    setAssignmentOrder,
+    editingAssignment,
+    handleSave,
+    resetForm,
+    handleEdit,
+  } = useAssignmentForm(db, userId, appId, showMessage, allAssignments, participants, showConfirm);
 
-    const participantsRef = collection(
-      db,
-      `artifacts/${appId}/users/${userId}/participants`
-    );
-    const unsubscribeParticipants = onSnapshot(participantsRef, (snapshot) => {
-      const fetched = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setParticipants(fetched);
-    });
+  // Hook para manejar los filtros de asignaciones
+  const {
+    filterDate,
+    setFilterDate,
+    filterName,
+    setFilterName,
+    currentAssignments,
+    clearFilters,
+  } = useAssignmentFilters(allAssignments);
 
-    const assignmentsRef = collection(
-      db,
-      `artifacts/${appId}/public/data/assignments`
-    );
-    const unsubscribeAssignments = onSnapshot(assignmentsRef, (snapshot) => {
-      const fetched = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAllAssignments(fetched);
-    });
+  // Hook para manejar las sugerencias y el historial de participantes
+  // No longer passes 'excludedParticipantIdsByType' directly, as it's part of 'participants'
+  const {
+    selectedParticipantHistory,
+    secondSelectedParticipantHistory,
+    duplaRepetida,
+    sugerenciasGenerales,
+    sugerenciasTitularesDemostracion,
+    sugerenciasAyudantesDemostracion,
+  } = useAssignmentSuggestions(
+    meetingDate,
+    selectedType,
+    participants, // 'participants' now contains the exclusion data
+    allAssignments,
+    selectedParticipantId,
+    secondSelectedParticipantId
+  );
 
-    return () => {
-      unsubscribeParticipants();
-      unsubscribeAssignments();
-    };
-  }, [db, userId]);
+  // Estado para la asignación a eliminar
+  const [assignmentToDelete, setAssignmentToDelete] = React.useState(null);
 
-  useEffect(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let filtered;
-
-    if (filterDate) {
-      filtered = allAssignments.filter((a) => a.date === filterDate);
-    } else {
-      filtered = allAssignments.filter((a) => {
-        const [y, m, d] = a.date.split("-").map(Number);
-        const date = new Date(y, m - 1, d);
-        return date >= today;
-      });
-    }
-
-    if (filterName.trim()) {
-      const name = filterName.toLowerCase();
-      filtered = filtered.filter(
-        (a) =>
-          a.participantName?.toLowerCase().includes(name) ||
-          a.secondParticipantName?.toLowerCase().includes(name)
-      );
-    }
-
-    filtered.sort((a, b) => {
-      if (a.date === b.date) return (a.orden ?? 99) - (b.orden ?? 99);
-      return new Date(a.date) - new Date(b.date);
-    });
-
-    setCurrentAssignments(filtered);
-  }, [allAssignments, filterDate, filterName]);
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    if (!meetingDate) return showMessage("Primero debes seleccionar una fecha de reunión.");
-
-    const isAssembly = ["asamblea-circuito", "asamblea-regional","cancion"].includes(selectedType);
-    if (!isAssembly && !selectedParticipantId) {
-      return showMessage("Completa los campos requeridos.");
-    }
-
-    const data = {
-      date: meetingDate,
-      type: selectedType,
-      title: assignmentTitle.trim(),
-      orden: parseInt(assignmentOrder, 10) || 99,
-      participantId: selectedParticipantId || null,
-      participantName: participants.find((p) => p.id === selectedParticipantId)?.name || null,
-    };
-
-    if (selectedType === "demostracion") {
-      if (
-        !secondSelectedParticipantId ||
-        secondSelectedParticipantId === selectedParticipantId
-      ) {
-        return showMessage("Selecciona un segundo participante válido.");
-      }
-      data.secondParticipantId = secondSelectedParticipantId;
-      data.secondParticipantName =
-        participants.find((p) => p.id === secondSelectedParticipantId)?.name || null;
-    }
-
+  // Función para confirmar la eliminación de una asignación
+  const handleDeleteConfirm = async () => {
+    if (!db || !assignmentToDelete) return;
     try {
-      if (editingAssignment) {
-        const changes = [];
-
-        if (
-          editingAssignment.participantId &&
-          editingAssignment.participantId !== selectedParticipantId
-        ) {
-          changes.push({
-            role: "titular",
-            oldId: editingAssignment.participantId,
-            oldName: editingAssignment.participantName,
-            newId: selectedParticipantId,
-            newName: data.participantName,
-          });
-        }
-
-        if (
-          selectedType === "demostracion" &&
-          editingAssignment.secondParticipantId !== secondSelectedParticipantId
-        ) {
-          changes.push({
-            role: "ayudante",
-            oldId: editingAssignment.secondParticipantId || null,
-            oldName: editingAssignment.secondParticipantName || null,
-            newId: secondSelectedParticipantId,
-            newName: data.secondParticipantName,
-          });
-        }
-
-        for (const change of changes) {
-          await addDoc(
-            collection(db, `artifacts/${appId}/public/data/replacements`),
-            {
-              assignmentId: editingAssignment.id,
-              date: meetingDate,
-              type: selectedType,
-              title: assignmentTitle.trim(),
-              replacedRole: change.role,
-              oldParticipantId: change.oldId,
-              oldParticipantName: change.oldName,
-              newParticipantId: change.newId,
-              newParticipantName: change.newName,
-              timestamp: new Date().toISOString(),
-            }
-          );
-        }
-
-        await updateDoc(
-          doc(db, `artifacts/${appId}/public/data/assignments`, editingAssignment.id),
-          data
-        );
-        showMessage("Asignación actualizada.");
-      } else {
-        await addDoc(
-          collection(db, `artifacts/${appId}/public/data/assignments`),
-          data
-        );
-        showMessage("Asignación creada.");
-      }
-      resetForm();
+      await deleteDoc(
+        doc(db, `artifacts/${appId}/public/data/assignments`, assignmentToDelete.id)
+      );
+      showMessage("Asignación eliminada.");
     } catch (error) {
       showMessage(`Error al eliminar: ${error.message}`);
     } finally {
       setAssignmentToDelete(null);
     }
   };
-
-  const sugerenciasGenerales = React.useMemo(() => {
-    if (!meetingDate || !selectedType || selectedType === "demostracion")
-      return [];
-
-    return participants
-      .filter((p) => p.enabledAssignments?.includes(selectedType))
-      .map((p) => {
-        const historial = allAssignments
-          .filter(
-            (a) =>
-              a.type === selectedType &&
-              (a.participantId === p.id || a.secondParticipantId === p.id)
-          )
-          .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        const ultima = historial[0]?.date || null;
-        const dias = calcularDiasDesde(meetingDate, ultima);
-
-        return { ...p, diasSinAsignacion: dias };
-      })
-      .sort((a, b) => b.diasSinAsignacion - a.diasSinAsignacion)
-      .slice(0, 5);
-  }, [meetingDate, selectedType, participants, allAssignments]);
-
-  const sugerenciasTitularesDemostracion = React.useMemo(() => {
-    if (!meetingDate || selectedType !== "demostracion") return [];
-
-    return participants
-      .filter((p) => p.enabledAssignments?.includes("demostracion"))
-      .map((p) => {
-        const historial = allAssignments
-          .filter((a) => a.type === "demostracion" && a.participantId === p.id)
-          .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        const ultima = historial[0]?.date || null;
-        const dias = calcularDiasDesde(meetingDate, ultima);
-
-        return { ...p, diasSinAsignacion: dias };
-      })
-      .sort((a, b) => b.diasSinAsignacion - a.diasSinAsignacion)
-      .slice(0, 5);
-  }, [meetingDate, selectedType, participants, allAssignments]);
-
-  const sugerenciasAyudantesDemostracion = React.useMemo(() => {
-    if (!meetingDate || selectedType !== "demostracion") return [];
-
-    return participants
-      .filter(
-        (p) =>
-          p.enabledAssignments?.includes("demostracion") ||
-          p.enabledAssignments?.includes("ayudante")
-      )
-      .map((p) => {
-        const historial = allAssignments
-          .filter(
-            (a) => a.type === "demostracion" && a.secondParticipantId === p.id
-          )
-          .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        const ultima = historial[0]?.date || null;
-        const dias = calcularDiasDesde(meetingDate, ultima);
-
-        return { ...p, diasSinAsignacion: dias };
-      })
-      .sort((a, b) => b.diasSinAsignacion - a.diasSinAsignacion)
-      .slice(0, 5);
-  }, [meetingDate, selectedType, participants, allAssignments]);
 
   return (
     <div className="space-y-8">
@@ -287,278 +107,75 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           className="p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
         />
       </div>
-            {meetingDate && (
-        <form
-          onSubmit={handleSave}
-          className="bg-gray-900 border border-gray-700 p-6 rounded-xl shadow space-y-6"
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-gray-300 mb-1">Tipo</label>
-              <select
-                className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-              >
-                <option value="presidencia">Presidencia</option>
-                <option value="cancion">Canción</option>
-                <option value="oracion-inicial">Oración Inicial</option>
-                <option value="oracion-final">Oración Final</option>
-                <option value="tesoros">Tesoros de la Biblia</option>
-                <option value="perlas-escondidas">Busquemos Perlas Escondidas</option>
-                <option value="demostracion">Demostración</option>
-                <option value="discurso">Discurso</option>
-                <option value="conduccion-estudio-biblico">Conducción Estudio Bíblico</option>
-                <option value="nuestra-vida-cristiana">Nuestra Vida Cristiana</option>
-                <option value="necesidades">Necesidades de la congregación</option>
-                <option value="lectura-biblia">Lectura Bíblica</option>
-                <option value="lectura-libro">Lectura del libro</option>
-                <option value="asamblea-circuito">Asamblea Circuito</option>
-                <option value="asamblea-regional">Asamblea Regional</option>
-                <option value="visita">Visita Superintendente y esposa</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-1">Título</label>
-              <input
-                type="text"
-                className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-                value={assignmentTitle}
-                onChange={(e) => setAssignmentTitle(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-1">Orden</label>
-              <input
-                type="number"
-                min="0"
-                className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-                value={assignmentOrder}
-                onChange={(e) => setAssignmentOrder(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-1">Titular</label>
-              <select
-                className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-                value={selectedParticipantId}
-                onChange={(e) => setSelectedParticipantId(e.target.value)}
-              >
-                <option value="">Selecciona</option>
-                {participants
-                  .filter((p) => p.enabledAssignments?.includes(selectedType))
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            {selectedType === "demostracion" && (
-              <div>
-                <label className="block text-gray-300 mb-1">Ayudante</label>
-                <select
-                  className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-                  value={secondSelectedParticipantId}
-                  onChange={(e) => setSecondSelectedParticipantId(e.target.value)}
-                >
-                  <option value="">Selecciona</option>
-                  {participants
-                    .filter(
-                      (p) =>
-                        p.enabledAssignments?.includes("demostracion") ||
-                        p.enabledAssignments?.includes("ayudante")
-                    )
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
-          </div>
 
-          {selectedParticipantHistory.length > 0 && (
-            <div className="mt-4 bg-gray-800 border border-gray-700 p-4 rounded text-sm">
-              <p className="font-semibold text-gray-200 mb-2">
-                Últimas asignaciones de {participants.find((p) => p.id === selectedParticipantId)?.name || "—"}:
-              </p>
-              <ul className="list-disc pl-5 text-gray-300">
-                {selectedParticipantHistory.map((a, i) => {
-                  const esTitular = a.participantId === selectedParticipantId;
-                  const esAyudante = a.secondParticipantId === selectedParticipantId;
-                  return (
-                    <li key={i}>
-                      {a.date} - {formatAssignmentType(a.type)}:
-                      {esTitular && (
-                        <>
-                          {" "}{a.title}
-                          {a.secondParticipantName && ` - con ${a.secondParticipantName}`}
-                        </>
-                      )}
-                      {esAyudante && (
-                        <>
-                          {" "}{a.title} (como ayudante de {a.participantName})
-                        </>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+      {/* The exclusion UI panel is now removed from here, as it lives in ParticipantsPage */}
+      {/* {meetingDate && ...} */} {/* This was previously commented out, ensure it's removed if it was placeholder */}
 
-          {secondSelectedParticipantHistory.length > 0 && (
-            <div className="mt-4 bg-gray-800 border border-gray-700 p-4 rounded text-sm">
-              <p className="font-semibold text-gray-200 mb-2">
-                Últimas asignaciones de {participants.find((p) => p.id === secondSelectedParticipantId)?.name || "—"}:
-              </p>
-              <ul className="list-disc pl-5 text-gray-300">
-                {secondSelectedParticipantHistory.map((a, i) => {
-                  const esTitular = a.participantId === secondSelectedParticipantId;
-                  const esAyudante = a.secondParticipantId === secondSelectedParticipantId;
-                  return (
-                    <li key={i}>
-                      {a.date} - {formatAssignmentType(a.type)}:
-                      {esTitular && (
-                        <>
-                          {" "}{a.title}
-                          {a.secondParticipantName && ` - con ${a.secondParticipantName}`}
-                        </>
-                      )}
-                      {esAyudante && (
-                        <>
-                          {" "}{a.title} (como ayudante de {a.participantName})
-                        </>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-
-          {duplaRepetida && (
-            <div className="mt-4 bg-red-900 border border-red-700 p-3 rounded text-red-200">
-              ¡Advertencia! Esta dupla ya participó junta el {duplaRepetida.date}.
-            </div>
-          )}
-
-          <div className="flex justify-end gap-2">
-            {editingAssignment && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
-              >
-                Cancelar
-              </button>
-            )}
-            <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded transition"
-            >
-              {editingAssignment ? "Actualizar" : "Guardar"}
-            </button>
-          </div>
-        </form>
+      {meetingDate && (
+        <AssignmentForm
+          meetingDate={meetingDate}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          assignmentTitle={assignmentTitle}
+          setAssignmentTitle={setAssignmentTitle}
+          selectedParticipantId={selectedParticipantId}
+          setSelectedParticipantId={setSelectedParticipantId}
+          secondSelectedParticipantId={secondSelectedParticipantId}
+          setSecondSelectedParticipantId={setSecondSelectedParticipantId}
+          assignmentOrder={assignmentOrder}
+          setAssignmentOrder={setAssignmentOrder}
+          editingAssignment={editingAssignment}
+          handleSave={handleSave}
+          resetForm={resetForm}
+          participants={participants}
+          selectedParticipantHistory={selectedParticipantHistory}
+          secondSelectedParticipantHistory={secondSelectedParticipantHistory}
+          duplaRepetida={duplaRepetida}
+          sugerenciasGenerales={sugerenciasGenerales}
+          sugerenciasTitularesDemostracion={sugerenciasTitularesDemostracion}
+          sugerenciasAyudantesDemostracion={sugerenciasAyudantesDemostracion}
+          replacements={replacements}
+        />
       )}
 
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <input
-          type="date"
-          value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
-          className="p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-        />
-        <input
-          type="text"
-          value={filterName}
-          onChange={(e) => setFilterName(e.target.value)}
-          placeholder="Buscar por nombre"
-          className="p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-        />
-        <button
-          onClick={() => {
-            setFilterDate("");
-            setFilterName("");
-          }}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded transition"
-        >
-          Limpiar filtros
-        </button>
-      </div>
+      <hr />
 
-      {/* Listado */}
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-indigo-300">Asignaciones Próximas</h3>
-        {currentAssignments.map((a) => (
-          <div
-            key={a.id}
-            className="p-4 border border-gray-700 bg-gray-800 rounded flex justify-between items-start"
-          >
-            <div>
-              <p className="font-semibold text-gray-200">
-                {a.date} - {formatAssignmentType(a.type)}
-              </p>
-              <p className="text-gray-300">{a.title}</p>
-              <p className="text-gray-300">
-                {a.participantName}
-                {a.secondParticipantName && ` y ${a.secondParticipantName}`}
-              </p>
-              <p className="text-gray-400 text-sm">Orden: {a.orden}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(a)}
-                className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded transition"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => setAssignmentToDelete(a)}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Sección de Filtros */}
+      <AssignmentFilters
+        filterDate={filterDate}
+        setFilterDate={setFilterDate}
+        filterName={filterName}
+        setFilterName={setFilterName}
+        clearFilters={clearFilters}
+      />
 
-      {/* ConfirmDialog */}
+      {/* Listado de Asignaciones */}
+      <AssignmentList
+        currentAssignments={currentAssignments}
+        handleEdit={handleEdit}
+        setAssignmentToDelete={setAssignmentToDelete}
+        db={db}
+        appId={appId}
+        showMessage={showMessage}
+      />
+
+      {/* ConfirmDialog para eliminación */}
       {assignmentToDelete && (
         <ConfirmDialog
           message="¿Eliminar esta asignación? Esta acción no se puede deshacer."
           confirmLabel="Eliminar"
           onCancel={() => setAssignmentToDelete(null)}
-          onConfirm={async () => {
-            try {
-              await deleteDoc(
-                doc(db, `artifacts/${appId}/public/data/assignments`, assignmentToDelete.id)
-              );
-              showMessage("Asignación eliminada.");
-            } catch (error) {
-              showMessage(`Error al eliminar: ${error.message}`);
-            } finally {
-              setAssignmentToDelete(null);
-            }
-          }}
+          onConfirm={handleDeleteConfirm}
         />
       )}
+
+      {/* ConfirmDialog general */}
       {confirmDialog.visible && (
         <ConfirmDialog
           message={confirmDialog.message}
-          onConfirm={() => {
-            if (confirmDialog.resolve) confirmDialog.resolve(true);
-            setConfirmDialog({ ...confirmDialog, visible: false });
-          }}
-          onCancel={() => {
-            if (confirmDialog.resolve) confirmDialog.resolve(false);
-            setConfirmDialog({ ...confirmDialog, visible: false });
-          }}
+          confirmLabel={confirmDialog.confirmLabel}
+          onCancel={() => handleConfirmClose(false)}
+          onConfirm={() => handleConfirmClose(true)}
         />
       )}
     </div>

@@ -78,14 +78,22 @@ export const formatAssignmentType = (type) => {
   }
 };
 
-export function calcularDiasDesde(baseDate, dateString) {
-  if (!dateString) return Infinity;
-  const base = new Date(baseDate);
-  const date = new Date(dateString);
-  const diffTime = base - date;
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
+export const calcularDiasDesde = (fechaReferencia, ultimaAsignacionFecha) => {
+  if (!ultimaAsignacionFecha) {
+    return Infinity; // This is the crucial part: return Infinity if no last assignment date
+  }
 
+  const fechaRef = new Date(fechaReferencia);
+  const ultimaAsig = new Date(ultimaAsignacionFecha);
+
+  // Set times to midnight to avoid time-of-day issues
+  fechaRef.setHours(0, 0, 0, 0);
+  ultimaAsig.setHours(0, 0, 0, 0);
+
+  const diferenciaMs = fechaRef.getTime() - ultimaAsig.getTime();
+  const dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+  return dias;
+};
 
 export function formatDateAr(isoString) {
   if (!isoString) return "";

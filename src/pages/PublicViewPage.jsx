@@ -87,11 +87,11 @@ const PublicViewPage = ({ db, showMessage }) => {
       unsubscribeAssignments();
       unsubscribeReminder();
     };
-  }, [db, showMessage, weekOffset]); // Also add reminderType to the dependency array if it were used in the effect to trigger re-runs, but in this case, it's only set, not used to determine the effect's behavior.
+  }, [db, showMessage, weekOffset]); 
 
    const getIconClass = (type) => {
     switch (type) {
-      case "Asamblea de Distrito":
+      case "Asamblea Regional":
         return "jw-icon jw-icon-001";
       case "Asamblea de Circuito":
         return "jw-icon jw-icon-023";
@@ -99,6 +99,8 @@ const PublicViewPage = ({ db, showMessage }) => {
         return "jw-icon jw-icon-047";
       case "Visita Especial":
         return "jw-icon jw-icon-195";
+      case "Conmemoración":
+        return "jw-icon jw-icon-237";
       default:
         return "";
     }

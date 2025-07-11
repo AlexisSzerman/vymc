@@ -1,3 +1,5 @@
+// ParticipantsPage.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   collection,
@@ -14,10 +16,11 @@ import {
   Square,
   Search,
 } from "lucide-react";
-import { formatAssignmentType } from "../utils/helpers";
+import { formatAssignmentType } from "../utils/helpers"; // Make sure this path is correct
 
 const appId = "default-app-id";
 
+// Your comprehensive list of assignment types
 const ASSIGNMENT_TYPES = [
   "presidencia",
   "oracion-inicial",
@@ -31,14 +34,16 @@ const ASSIGNMENT_TYPES = [
   "necesidades",
   "lectura-biblia",
   "lectura-libro",
-  "ayudante",
+  "ayudante", // 'ayudante' is a role often associated with 'demostracion' but can be a standalone type for exclusion purposes
 ];
+
 
 const ParticipantsPage = ({ db, userId, showMessage }) => {
   const [participants, setParticipants] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [enabledAssignments, setEnabledAssignments] = useState([]);
+  const [excludedFromTypes, setExcludedFromTypes] = useState([]); // Stores which types the participant is excluded from
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToDelete, setParticipantToDelete] = useState(null);
@@ -81,6 +86,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
         name: newName.trim(),
         notes: newNotes.trim(),
         enabledAssignments: enabledAssignments,
+        // Ensure excludedFromTypes is stored as an array, default to empty if not set
+        excludedFromAssignmentTypes: excludedFromTypes || [],
       };
 
       if (editingParticipant) {
@@ -104,6 +111,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       setNewName("");
       setNewNotes("");
       setEnabledAssignments([]);
+      setExcludedFromTypes([]); // Reset exclusion status after save
     } catch (error) {
       console.error("Error saving participant:", error);
       showMessage(`Error: ${error.message}`);
@@ -115,6 +123,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     setNewName(p.name);
     setNewNotes(p.notes || "");
     setEnabledAssignments(p.enabledAssignments || []);
+    // Load exclusion status, defaulting to empty array if not present in Firestore
+    setExcludedFromTypes(p.excludedFromAssignmentTypes || []);
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
 
@@ -147,6 +157,15 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       setEnabledAssignments(enabledAssignments.filter((a) => a !== assignment));
     } else {
       setEnabledAssignments([...enabledAssignments, assignment]);
+    }
+  };
+
+  // Function to toggle exclusion for a specific type
+  const toggleExclusionForType = (typeToExclude) => {
+    if (excludedFromTypes.includes(typeToExclude)) {
+      setExcludedFromTypes(excludedFromTypes.filter((type) => type !== typeToExclude));
+    } else {
+      setExcludedFromTypes([...excludedFromTypes, typeToExclude]);
     }
   };
 
@@ -186,26 +205,55 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {ASSIGNMENT_TYPES.map((type) => (
-  <label
-    key={type}
-    className="flex items-center gap-2 text-sm text-gray-200"
-  >
-    {enabledAssignments.includes(type) ? (
-      <CheckSquare
-        className="w-4 h-4 cursor-pointer"
-        onClick={() => toggleAssignment(type)}
-      />
-    ) : (
-      <Square
-        className="w-4 h-4 cursor-pointer"
-        onClick={() => toggleAssignment(type)}
-      />
-    )}
-    {formatAssignmentType(type)}
-  </label>
-))}
+              <label
+                key={type}
+                className="flex items-center gap-2 text-sm text-gray-200"
+              >
+                {enabledAssignments.includes(type) ? (
+                  <CheckSquare
+                    className="w-4 h-4 cursor-pointer"
+                    onClick={() => toggleAssignment(type)}
+                  />
+                ) : (
+                  <Square
+                    className="w-4 h-4 cursor-pointer"
+                    onClick={() => toggleAssignment(type)}
+                  />
+                )}
+                {formatAssignmentType(type)}
+              </label>
+            ))}
           </div>
         </div>
+        {/* UPDATED SECTION: Exclusion from *all* assignment types */}
+        <div>
+          <p className="text-gray-400 text-sm mb-2 mt-4">
+            Excluir de sugerencias para:
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {/* Map over all ASSIGNMENT_TYPES for exclusion checkboxes */}
+            {ASSIGNMENT_TYPES.map((type) => (
+              <label
+                key={`exclude-${type}`}
+                className="flex items-center gap-2 text-sm text-gray-200"
+              >
+                {excludedFromTypes.includes(type) ? (
+                  <CheckSquare
+                    className="w-4 h-4 cursor-pointer text-red-400"
+                    onClick={() => toggleExclusionForType(type)}
+                  />
+                ) : (
+                  <Square
+                    className="w-4 h-4 cursor-pointer"
+                    onClick={() => toggleExclusionForType(type)}
+                  />
+                )}
+                {formatAssignmentType(type)}
+              </label>
+            ))}
+          </div>
+        </div>
+        {/* END UPDATED SECTION */}
         <div className="flex justify-end gap-2">
           {editingParticipant && (
             <button
@@ -215,6 +263,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 setNewName("");
                 setNewNotes("");
                 setEnabledAssignments([]);
+                setExcludedFromTypes([]); // Reset exclusion status on cancel
               }}
               className="px-4 py-2 bg-gray-500 text-white rounded"
             >
@@ -254,6 +303,12 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 {p.notes && (
                   <p className="text-sm text-gray-400">{p.notes}</p>
                 )}
+                {/* Display excluded types for the participant */}
+                {p.excludedFromAssignmentTypes?.length > 0 && (
+                  <p className="text-xs text-red-300 mt-1">
+                    Excluido de: {p.excludedFromAssignmentTypes.map(formatAssignmentType).join(', ')}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
                 <button
@@ -283,7 +338,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       </p>
 
       {showConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-xl space-y-4 text-white">
             <p>
               ¿Eliminar a{" "}
@@ -298,7 +353,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2  bg-rose-600  hover:bg-rose-500 text-white rounded"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded"
               >
                 Eliminar
               </button>
@@ -311,4 +366,3 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
 };
 
 export default ParticipantsPage;
-

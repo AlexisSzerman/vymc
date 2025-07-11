@@ -6,7 +6,7 @@ const AssignmentSuggestions = ({
   setSelectedParticipantId,
   setSecondSelectedParticipantId,
   title,
-  type, // 'general', 'titular', 'ayudante'
+  type, 
 }) => {
   // Determina las clases de color de fondo y borde según el tipo de sugerencia
   const bgColorClass =
@@ -43,8 +43,8 @@ const AssignmentSuggestions = ({
             <span>
               {p.name} (
               {p.diasSinAsignacion === Infinity
-                ? "nunca tuvo" // Mensaje si el participante nunca tuvo esta asignación
-                : `${p.diasSinAsignacion} días`} {/* Días desde la última asignación */}
+                ? "nunca tuvo" 
+                : `${p.diasSinAsignacion} días`}
               )
             </span>
             <button

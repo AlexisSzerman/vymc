@@ -1,6 +1,5 @@
 import ParticipantHistory from "./ParticipantHistory";
 import AssignmentSuggestions from "../components/AssignmentSuggestions";
-
 import { formatDateAr } from "../utils/helpers"; 
 
 const AssignmentForm = ({
