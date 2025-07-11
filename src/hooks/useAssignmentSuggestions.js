@@ -7,7 +7,7 @@ const useAssignmentSuggestions = (
   meetingDate,
   selectedType,
   participants,
-  allAssignments, // This should contain ALL historical assignments
+  allAssignments,
   selectedParticipantId,
   secondSelectedParticipantId
 ) => {
@@ -107,7 +107,7 @@ const useAssignmentSuggestions = (
         // Then sort by days without assignment in descending order (longest gap first)
         return b.diasSinAsignacion - a.diasSinAsignacion;
       })
-      .slice(0, 5); // Show top 5 suggestions
+      .slice(0, 20); // Show top 20 suggestions
   };
 
   // Sugerencias generales para tipos de asignación que no son demostración

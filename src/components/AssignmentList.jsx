@@ -1,7 +1,7 @@
 import { doc, updateDoc } from "firebase/firestore";
-import { formatAssignmentType, formatDateAr } from "../utils/helpers"; // Asegúrate de que estas rutas sean correctas
+import { formatAssignmentType, formatDateAr } from "../utils/helpers";
+import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 
-// __app_id es una variable global proporcionada por el entorno Canvas
 const appId = "default-app-id";
 
 const AssignmentList = ({
@@ -14,7 +14,9 @@ const AssignmentList = ({
   // Función para publicar todas las asignaciones filtradas
   const handlePublishAll = async () => {
     if (!db) return;
-    const assignmentsToPublish = currentAssignments.filter((a) => a.published === false);
+    const assignmentsToPublish = currentAssignments.filter(
+      (a) => a.published === false
+    );
     if (assignmentsToPublish.length === 0) {
       showMessage("No hay asignaciones sin publicar en la vista actual.");
       return;
@@ -23,10 +25,9 @@ const AssignmentList = ({
     try {
       // Usar Promise.all para actualizar todas las asignaciones en paralelo
       const batchUpdates = assignmentsToPublish.map((a) =>
-        updateDoc(
-          doc(db, `artifacts/${appId}/public/data/assignments`, a.id),
-          { published: true }
-        )
+        updateDoc(doc(db, `artifacts/${appId}/public/data/assignments`, a.id), {
+          published: true,
+        })
       );
       await Promise.all(batchUpdates);
       showMessage("Todas las asignaciones filtradas se publicaron.");
@@ -94,29 +95,35 @@ const AssignmentList = ({
               <div className="flex flex-grow justify-end gap-2 pr-2 sm:pr-0">
                 <button
                   onClick={() => handleEdit(a)}
-                  className="flex-shrink-0 px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded transition whitespace-nowrap"
+                  className="flex-shrink-0 p-2 bg-orange-400 hover:bg-orange-700 text-white rounded transition"
+                  title="Editar"
                 >
-                  Editar
+                  <Pencil size={18} />
                 </button>
+
                 <button
                   onClick={() => setAssignmentToDelete(a)}
-                  className="flex-shrink-0 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition whitespace-nowrap"
+                  className="flex-shrink-0 p-2 bg-rose-600 hover:bg-rose-700 text-white rounded transition"
+                  title="Eliminar"
                 >
-                  Eliminar
+                  <Trash2 size={18} />
                 </button>
+
                 {a.published === false ? (
                   <button
                     onClick={() => togglePublishStatus(a.id, a.published)}
-                    className="flex-shrink-0 px-3 py-1 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition whitespace-nowrap"
+                    className="flex-shrink-0 p-2 bg-emerald-500 hover:bg-emerald-700 text-white rounded transition"
+                    title="Publicar en Programa Semanal"
                   >
-                    Publicar
+                     <Eye size={18} />
                   </button>
                 ) : (
                   <button
                     onClick={() => togglePublishStatus(a.id, a.published)}
-                    className="flex-shrink-0 px-3 py-1 bg-slate-500 hover:bg-slate-700 text-white rounded transition whitespace-nowrap"
+                    className="flex-shrink-0 p-2 bg-slate-500 hover:bg-slate-700 text-white rounded transition"
+                    title="Ocultar de Programa Semanal"
                   >
-                    Ocultar
+                    <EyeOff size={18} />
                   </button>
                 )}
               </div>

@@ -15,8 +15,11 @@ import {
   CheckSquare,
   Square,
   Search,
+  Pencil, 
+  Trash2
 } from "lucide-react";
 import { formatAssignmentType } from "../utils/helpers"; // Make sure this path is correct
+
 
 const appId = "default-app-id";
 
@@ -313,15 +316,17 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleEdit(p)}
-                  className="px-3 py-1 bg-orange-400 hover:bg-orange-700 text-white rounded flex items-center gap-1"
+                  className="p-2 bg-orange-400 hover:bg-orange-700 text-white rounded flex items-center gap-1"
+                  title="Editar"
                 >
-                  Editar
+                  <Pencil size={18} />
                 </button>
                 <button
                   onClick={() => handleDelete(p)}
-                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded flex items-center gap-1"
+                  className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded flex items-center gap-1"
+                  title="Eliminar"
                 >
-                  Eliminar
+                  <Trash2 size={18} />
                 </button>
               </div>
             </li>

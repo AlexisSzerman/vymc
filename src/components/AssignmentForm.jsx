@@ -1,6 +1,6 @@
 import ParticipantHistory from "./ParticipantHistory";
 import AssignmentSuggestions from "../components/AssignmentSuggestions";
-import { formatDateAr } from "../utils/helpers"; 
+import { formatDateAr } from "../utils/helpers";
 
 const AssignmentForm = ({
   selectedType,
@@ -25,7 +25,11 @@ const AssignmentForm = ({
   sugerenciasAyudantesDemostracion,
   replacements,
 }) => {
-  const isAssembly = ["asamblea-circuito", "asamblea-regional", "cancion"].includes(selectedType);
+  const isAssembly = [
+    "asamblea-circuito",
+    "asamblea-regional",
+    "cancion",
+  ].includes(selectedType);
 
   return (
     <form
@@ -47,11 +51,17 @@ const AssignmentForm = ({
             <option value="oracion-inicial">Oración Inicial</option>
             <option value="oracion-final">Oración Final</option>
             <option value="tesoros">Tesoros de la Biblia</option>
-            <option value="perlas-escondidas">Busquemos Perlas Escondidas</option>
+            <option value="perlas-escondidas">
+              Busquemos Perlas Escondidas
+            </option>
             <option value="demostracion">Demostración</option>
             <option value="discurso">Discurso</option>
-            <option value="conduccion-estudio-biblico">Conducción Estudio Bíblico</option>
-            <option value="nuestra-vida-cristiana">Nuestra Vida Cristiana</option>
+            <option value="conduccion-estudio-biblico">
+              Conducción Estudio Bíblico
+            </option>
+            <option value="nuestra-vida-cristiana">
+              Nuestra Vida Cristiana
+            </option>
             <option value="necesidades">Necesidades de la congregación</option>
             <option value="lectura-biblia">Lectura Bíblica</option>
             <option value="lectura-libro">Lectura del libro</option>
@@ -160,36 +170,15 @@ const AssignmentForm = ({
         </div>
       )}
 
-      {/* Sugerencias generales */}
-      {selectedType !== "demostracion" && sugerenciasGenerales.length > 0 && (
+      {(sugerenciasGenerales.length > 0 ||
+        sugerenciasTitularesDemostracion.length > 0 ||
+        sugerenciasAyudantesDemostracion.length > 0) && (
         <AssignmentSuggestions
-          suggestions={sugerenciasGenerales}
-          selectedType={selectedType}
+          generalSuggestions={sugerenciasGenerales}
+          titularSuggestions={sugerenciasTitularesDemostracion}
+          ayudanteSuggestions={sugerenciasAyudantesDemostracion}
           setSelectedParticipantId={setSelectedParticipantId}
-          title="Participantes que más tiempo hace que no tienen esta asignación:"
-          type="general"
-        />
-      )}
-
-      {/* Sugerencias para titulares de demostración */}
-      {selectedType === "demostracion" && sugerenciasTitularesDemostracion.length > 0 && (
-        <AssignmentSuggestions
-          suggestions={sugerenciasTitularesDemostracion}
-          selectedType={selectedType}
-          setSelectedParticipantId={setSelectedParticipantId}
-          title="Titulares con más tiempo sin asignación:"
-          type="titular"
-        />
-      )}
-
-      {/* Sugerencias para ayudantes de demostración */}
-      {selectedType === "demostracion" && sugerenciasAyudantesDemostracion.length > 0 && (
-        <AssignmentSuggestions
-          suggestions={sugerenciasAyudantesDemostracion}
-          selectedType={selectedType}
           setSecondSelectedParticipantId={setSecondSelectedParticipantId}
-          title="Ayudantes con más tiempo sin asignación:"
-          type="ayudante"
         />
       )}
 

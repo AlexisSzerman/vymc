@@ -7,6 +7,7 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 import { formatDateToYYYYMMDD, formatDateAr } from '../utils/helpers';
+import { Pencil, Trash2 } from "lucide-react";
 
 const appId = 'default-app-id';
 
@@ -137,7 +138,7 @@ const ReminderManager = ({ db, showMessage }) => {
           onClick={saveReminder}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition"
         >
-          {editingId ? 'Actualizar' : 'Crear'}
+          {editingId ? 'Actualizar' : 'Publicar'}
         </button>
       </div>
 
@@ -158,15 +159,17 @@ const ReminderManager = ({ db, showMessage }) => {
               <div className="flex gap-2 justify-end mt-2 sm:mt-0">
                 <button
                   onClick={() => handleEdit(reminder)}
-                  className="bg-orange-400 text-white px-3 py-1 rounded-lg hover:bg-orange-700 transition"
+                  className="bg-orange-400 text-white p-2 rounded-lg hover:bg-orange-700 transition"
+                  title="Editar"
                 >
-                  Editar
+                  <Pencil size={18} />
                 </button>
                 <button
                   onClick={() => handleDelete(reminder)}
-                  className=" text-white px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 transition"
+                  className=" text-white p-2 rounded-lg bg-rose-600 hover:bg-rose-700 transition"
+                  title="Eliminar"
                 >
-                  Eliminar
+                  <Trash2 size={18} />
                 </button>
               </div>
             </li>

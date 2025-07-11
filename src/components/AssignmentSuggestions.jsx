@@ -1,63 +1,84 @@
-
-
+import React, { useState } from "react";
 
 const AssignmentSuggestions = ({
-  suggestions,
+  generalSuggestions = [],
+  titularSuggestions = [],
+  ayudanteSuggestions = [],
   setSelectedParticipantId,
   setSecondSelectedParticipantId,
-  title,
-  type, 
 }) => {
-  // Determina las clases de color de fondo y borde según el tipo de sugerencia
-  const bgColorClass =
-    type === "general"
-      ? "bg-blue-900 border-blue-600 text-blue-100"
-      : type === "titular"
-      ? "bg-indigo-700 border-indigo-400 text-indigo-100"
-      : "bg-gray-700 border-gray-500 text-pink-100";
+  const [selectedTitular, setSelectedTitular] = useState(null);
+  const [selectedAyudante, setSelectedAyudante] = useState(null);
+  const [confirmado, setConfirmado] = useState(false);
 
-  // Determina las clases de color del botón según el tipo de sugerencia
-  const buttonColorClass =
-    type === "general"
-      ? "bg-blue-600 hover:bg-blue-700"
-      : type === "titular"
-      ? "bg-indigo-600 hover:bg-indigo-900"
-      : "bg-gray-500 hover:bg-gray-900";
-
-  // Función para manejar la selección de un participante desde las sugerencias
-  const handleSelect = (participantId) => {
-    // Si el tipo es 'ayudante', actualiza el segundo participante, de lo contrario, el principal
-    if (type === "ayudante") {
-      setSecondSelectedParticipantId(participantId);
-    } else {
-      setSelectedParticipantId(participantId);
-    }
+  const handleConfirm = () => {
+    if (selectedTitular) setSelectedParticipantId(selectedTitular);
+    if (selectedAyudante) setSecondSelectedParticipantId(selectedAyudante);
+    setConfirmado(true);
+    setTimeout(() => setConfirmado(false), 3000); // Feedback temporal
   };
 
+  const renderSuggestions = (suggestions, selected, setSelected, label) => (
+    <div className="mb-4">
+      <p className="font-semibold mb-1">{label}</p>
+      <div className="max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-600">
+        <ul className="space-y-1">
+          {suggestions.map((p) => (
+            <li key={p.id} className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name={label}
+                value={p.id}
+                checked={selected === p.id}
+                onChange={() => setSelected(p.id)}
+                className="accent-blue-600"
+              />
+              <label className="flex-1 text-sm text-gray-200">
+                {p.name} (
+                {p.diasSinAsignacion === Infinity
+                  ? "nunca tuvo"
+                  : `${p.diasSinAsignacion} días`}
+                )
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+
+  if (
+    generalSuggestions.length === 0 &&
+    titularSuggestions.length === 0 &&
+    ayudanteSuggestions.length === 0
+  ) {
+    return null;
+  }
+
   return (
-    <div className={`mt-4 border p-4 rounded mb-4 ${bgColorClass}`}>
-      <p className="font-semibold mb-2">{title}</p>
-      <ul className="space-y-1">
-        {suggestions.map((p) => (
-          <li key={p.id} className="flex justify-between items-center">
-            <span>
-              {p.name} (
-              {p.diasSinAsignacion === Infinity
-                ? "nunca tuvo" 
-                : `${p.diasSinAsignacion} días`}
-              )
-            </span>
-            <button
-              onClick={() => handleSelect(p.id)}
-              className={`ml-2 px-3 py-1 text-white rounded text-sm ${buttonColorClass}`}
-            >
-              Seleccionar
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="mt-4 border border-blue-800 bg-blue-950 p-4 rounded text-blue-100 shadow-md">
+      <p className="text-lg font-bold mb-2">Sugerencias</p>
+      {generalSuggestions.length > 0 &&
+        renderSuggestions(generalSuggestions, selectedTitular, setSelectedTitular, "Titular")}
+      {titularSuggestions.length > 0 &&
+        renderSuggestions(titularSuggestions, selectedTitular, setSelectedTitular, "Titular")}
+      {ayudanteSuggestions.length > 0 &&
+        renderSuggestions(ayudanteSuggestions, selectedAyudante, setSelectedAyudante, "Ayudante")}
+      <div className="mt-4 flex justify-between items-center">
+        {confirmado && (
+          <p className="text-green-400 text-sm">Selección confirmada</p>
+        )}
+        <button
+          onClick={handleConfirm}
+          className="ml-auto px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded text-sm"
+        >
+          Confirmar selección
+        </button>
+      </div>
     </div>
   );
 };
 
 export default AssignmentSuggestions;
+
+

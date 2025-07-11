@@ -37,6 +37,8 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllParticipants, setShowAllParticipants] = useState(false);
+      const [showAllReplacementsMade, setShowAllReplacementsMade] = useState(false);
+const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(false);
 
   useEffect(() => {
     if (!db || !authUser) return;
@@ -74,7 +76,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     fetchData();
   }, [db, showMessage, authUser]);
 
-  // Filtrado de asignaciones y reemplazos
   const filteredAssignments = assignments.filter(
     (a) =>
       !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
@@ -89,7 +90,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   );
 
   const normalizeName = (name) =>
-    name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    name.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
   const assignedParticipantNames = new Set();
   filteredAssignments.forEach((a) => {
@@ -101,7 +102,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     assignedParticipantNames.has(normalizeName(p.name))
   );
 
-  // Asignaciones por mes
   const assignmentsPerMonth = {};
   filteredAssignments.forEach((a) => {
     if (!a.date) return;
@@ -112,7 +112,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const barLabels = Object.keys(assignmentsPerMonth).sort();
   const barData = Object.values(assignmentsPerMonth);
 
-  // Reemplazos por tipo
   const replacementsPerType = {};
   filteredReplacements.forEach((r) => {
     const key = r.type || "Desconocido";
@@ -121,7 +120,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const pieLabels = Object.keys(replacementsPerType);
   const pieData = Object.values(replacementsPerType);
 
-  // Top participantes (todos ordenados)
   const participantCounts = {};
   filteredAssignments.forEach((a) => {
     if (a.participantName) {
@@ -136,10 +134,31 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const topParticipantsFull = Object.entries(participantCounts)
     .sort((a, b) => b[1] - a[1]);
 
-  // Los que se muestran (5 o todos)
+
+
+
+
   const participantsToShow = showAllParticipants
     ? topParticipantsFull
     : topParticipantsFull.slice(0, 5);
+
+  const replacementsMade = {};
+  const replacementsReceived = {};
+  filteredReplacements.forEach((r) => {
+    replacementsMade[r.newParticipantName] = (replacementsMade[r.newParticipantName] || 0) + 1;
+    replacementsReceived[r.oldParticipantName] = (replacementsReceived[r.oldParticipantName] || 0) + 1;
+  });
+
+  const replacementsMadeSorted = Object.entries(replacementsMade).sort((a, b) => b[1] - a[1]);
+  const replacementsReceivedSorted = Object.entries(replacementsReceived).sort((a, b) => b[1] - a[1]);
+
+  const displayedReplacementsMade = showAllReplacementsMade
+  ? replacementsMadeSorted
+  : replacementsMadeSorted.slice(0, 5);
+
+const displayedReplacementsReceived = showAllReplacementsReceived
+  ? replacementsReceivedSorted
+  : replacementsReceivedSorted.slice(0, 5);
 
   if (loading) {
     return (
@@ -154,7 +173,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
 
   return (
     <div className="space-y-8">
-
       <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
         <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
       </h2>
@@ -176,10 +194,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
           <p className="text-sm text-gray-500">% asignaciones con reemplazo</p>
           <p className="text-3xl font-bold text-indigo-600">
             {filteredAssignments.length > 0
-              ? (
-                  (filteredReplacements.length / filteredAssignments.length) *
-                  100
-                ).toFixed(1) + "%"
+              ? ((filteredReplacements.length / filteredAssignments.length) * 100).toFixed(1) + "%"
               : "0%"}
           </p>
         </div>
@@ -208,11 +223,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
                   }
                 ]
               }}
-              options={{
-                plugins: {
-                  legend: { display: false }
-                }
-              }}
+              options={{ plugins: { legend: { display: false } } }}
             />
           )}
         </div>
@@ -248,7 +259,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
 
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
         <h3 className="text-xl font-semibold mb-4">
-          Top Participantes más Asignados
+          Top Asignados
         </h3>
         {participantsToShow.length === 0 ? (
           <p className="text-gray-500">No hay datos.</p>
@@ -273,8 +284,53 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
           </button>
         )}
       </div>
-    </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
+    <h3 className="text-xl font-semibold mb-4">Top Reemplazos</h3>
+    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+      {displayedReplacementsMade.map(([name, count]) => (
+        <li key={name} className="flex justify-between py-2">
+          <span className="text-gray-800 dark:text-gray-100">{name}</span>
+          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{count}</span>
+        </li>
+      ))}
+    </ul>
+    {replacementsMadeSorted.length > 5 && (
+      <button
+        onClick={() => setShowAllReplacementsMade(!showAllReplacementsMade)}
+        className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+      >
+        {showAllReplacementsMade ? "Mostrar menos" : "Mostrar más"}
+      </button>
+    )}
+  </div>
+
+  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
+    <h3 className="text-xl font-semibold mb-4">Top Reemplazados</h3>
+    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+      {displayedReplacementsReceived.map(([name, count]) => (
+        <li key={name} className="flex justify-between py-2">
+          <span className="text-gray-800 dark:text-gray-100">{name}</span>
+          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{count}</span>
+        </li>
+      ))}
+    </ul>
+    {replacementsReceivedSorted.length > 5 && (
+      <button
+        onClick={() => setShowAllReplacementsReceived(!showAllReplacementsReceived)}
+        className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+      >
+        {showAllReplacementsReceived ? "Mostrar menos" : "Mostrar más"}
+      </button>
+    )}
+  </div>
+</div>
+
+      </div>
+    
   );
 };
 
 export default DashboardPage;
+

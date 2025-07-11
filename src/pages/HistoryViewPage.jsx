@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { formatAssignmentType } from '../utils/helpers';
 import { History} from "lucide-react";
-import { formatDateAr } from '../utils/helpers'; // Assuming this is the correct path for the date formatting function
+import { formatDateAr } from '../utils/helpers';
+import { Trash2 } from "lucide-react";
 
 const appId = 'default-app-id';
 
@@ -176,11 +177,13 @@ const HistoryViewPage = ({ db, showMessage }) => {
                   {a.type === 'demostracion' && a.secondParticipantName && ` y ${a.secondParticipantName}`}
                 </p>
               </div>
+
               <button
                 onClick={() => setConfirmDeleteId(a.id)}
-                className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded transition"
+                className="p-2 text-white rounded transition bg-rose-600 hover:bg-rose-700"
+                title="Eliminar"
               >
-                Eliminar
+                <Trash2 size={18} />
               </button>
             </li>
           ))
