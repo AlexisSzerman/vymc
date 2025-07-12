@@ -24,7 +24,7 @@ const Navigation = ({
     },
     {
       key: "export",
-      label: "Exportar Asignaciones",
+      label: "Descargar Asignaciones",
       icon: <ArrowDownFromLine className="w-5 h-5" />
     },
   ];

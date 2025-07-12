@@ -15,14 +15,9 @@ import { deleteDoc, doc } from "firebase/firestore";
 const appId = "default-app-id";
 
 const AssignmentsPage = ({ db, userId, showMessage }) => {
-  // Hooks para manejar los datos de Firestore
-  // 'participants' fetched here will now include the 'excludedFromAssignmentTypes' array for each participant
+
   const { participants, allAssignments, replacements } = useAssignmentsData(db, userId, appId);
-
-  // Hook para manejar el diálogo de confirmación
   const { confirmDialog, showConfirm, handleConfirmClose } = useConfirmDialog();
-
-  // Hook para manejar el formulario de asignaciones
   const {
     meetingDate,
     setMeetingDate,
@@ -42,7 +37,6 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     handleEdit,
   } = useAssignmentForm(db, userId, appId, showMessage, allAssignments, participants, showConfirm);
 
-  // Hook para manejar los filtros de asignaciones
   const {
     filterDate,
     setFilterDate,
@@ -52,8 +46,6 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     clearFilters,
   } = useAssignmentFilters(allAssignments);
 
-  // Hook para manejar las sugerencias y el historial de participantes
-  // No longer passes 'excludedParticipantIdsByType' directly, as it's part of 'participants'
   const {
     selectedParticipantHistory,
     secondSelectedParticipantHistory,
@@ -64,7 +56,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   } = useAssignmentSuggestions(
     meetingDate,
     selectedType,
-    participants, // 'participants' now contains the exclusion data
+    participants, 
     allAssignments,
     selectedParticipantId,
     secondSelectedParticipantId
@@ -108,9 +100,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
         />
       </div>
 
-      {/* The exclusion UI panel is now removed from here, as it lives in ParticipantsPage */}
-      {/* {meetingDate && ...} */} {/* This was previously commented out, ensure it's removed if it was placeholder */}
-
+      {/* Formulario de Asignación */}
       {meetingDate && (
         <AssignmentForm
           meetingDate={meetingDate}

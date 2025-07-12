@@ -64,7 +64,20 @@ const HistoryViewPage = ({ db, showMessage }) => {
       });
     }
 
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    filtered.sort((a, b) => {
+  const hasOrdenA = typeof a.orden === "number";
+  const hasOrdenB = typeof b.orden === "number";
+
+  if (hasOrdenA && hasOrdenB) {
+    return a.orden - b.orden;
+  }
+
+  if (hasOrdenA) return -1;
+  if (hasOrdenB) return 1;
+
+  // Si ninguno tiene 'orden', ordenar por fecha descendente
+  return new Date(b.date) - new Date(a.date);
+});
     setFilteredAssignments(filtered);
   }, [allAssignments, filterDate, filterType, filterName]);
 
