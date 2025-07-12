@@ -214,12 +214,12 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               >
                 {enabledAssignments.includes(type) ? (
                   <CheckSquare
-                    className="w-4 h-4 cursor-pointer"
+                    className="w-5 h-5 min-w-[20px] min-h-[20px] shrink-0 cursor-pointer"
                     onClick={() => toggleAssignment(type)}
                   />
                 ) : (
                   <Square
-                    className="w-4 h-4 cursor-pointer"
+                    className="w-5 h-5 min-w-[20px] min-h-[20px] shrink-0 cursor-pointer"
                     onClick={() => toggleAssignment(type)}
                   />
                 )}
@@ -242,12 +242,12 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               >
                 {excludedFromTypes.includes(type) ? (
                   <CheckSquare
-                    className="w-4 h-4 cursor-pointer text-red-400"
+                    className="w-5 h-5 min-w-[20px] min-h-[20px] shrink-0 cursor-pointer text-red-400"
                     onClick={() => toggleExclusionForType(type)}
                   />
                 ) : (
                   <Square
-                    className="w-4 h-4 cursor-pointer"
+                    className="w-5 h-5 min-w-[20px] min-h-[20px] shrink-0 cursor-pointer"
                     onClick={() => toggleExclusionForType(type)}
                   />
                 )}
