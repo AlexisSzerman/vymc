@@ -50,7 +50,7 @@ const Header = ({ setCurrentPage, isMenuOpen, toggleMenu }) => {
           onClick={() => setCurrentPage("public")}
           className="text-lg font-bold text-indigo-700 dark:text-indigo-300 cursor-pointer flex items-center gap-2"
         >
-          <img src="/logo-vymc.svg" alt="Logo" className="mx-auto h-12" />
+          <img src="icons/logo-vymc.svg" alt="Logo" className="mx-auto h-12" />
           Gestor Reunion Vida y Ministerio Cristianos
         </h1>
       </div>
