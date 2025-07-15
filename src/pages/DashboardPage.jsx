@@ -37,8 +37,10 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllParticipants, setShowAllParticipants] = useState(false);
-      const [showAllReplacementsMade, setShowAllReplacementsMade] = useState(false);
-const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(false);
+  const [showAllReplacementsMade, setShowAllReplacementsMade] = useState(false);
+  const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(false);
+  // New state for month filter
+  const [selectedMonth, setSelectedMonth] = useState("all");
 
   useEffect(() => {
     if (!db || !authUser) return;
@@ -76,26 +78,42 @@ const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(f
     fetchData();
   }, [db, showMessage, authUser]);
 
+  // Filter assignments and replacements by selected month
   const filteredAssignments = assignments.filter(
     (a) =>
       !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
       !EXCLUDED_PARTICIPANTS.includes(a.participantName) &&
-      !EXCLUDED_PARTICIPANTS.includes(a.secondParticipantName)
+      !EXCLUDED_PARTICIPANTS.includes(a.secondParticipantName) &&
+      (selectedMonth === "all" || (a.date && a.date.startsWith(selectedMonth)))
   );
 
   const filteredReplacements = replacements.filter(
     (r) =>
       !EXCLUDED_PARTICIPANTS.includes(r.oldParticipantName) &&
-      !EXCLUDED_PARTICIPANTS.includes(r.newParticipantName)
+      !EXCLUDED_PARTICIPANTS.includes(r.newParticipantName) &&
+      (selectedMonth === "all" || (r.date && r.date.startsWith(selectedMonth)))
   );
+
+  // Get unique months for the dropdown
+  const availableMonths = [...new Set(
+    assignments
+      .filter((a) => a.date)
+      .map((a) => a.date.slice(0, 7)) // Extract YYYY-MM
+  )].sort();
 
   const normalizeName = (name) =>
     name.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+  // Modified active participants logic
   const assignedParticipantNames = new Set();
+  const replacedParticipantNames = new Set(filteredReplacements.map(r => normalizeName(r.oldParticipantName)));
   filteredAssignments.forEach((a) => {
-    if (a.participantName) assignedParticipantNames.add(normalizeName(a.participantName));
-    if (a.secondParticipantName) assignedParticipantNames.add(normalizeName(a.secondParticipantName));
+    if (a.participantName && !replacedParticipantNames.has(normalizeName(a.participantName))) {
+      assignedParticipantNames.add(normalizeName(a.participantName));
+    }
+    if (a.secondParticipantName && !replacedParticipantNames.has(normalizeName(a.secondParticipantName))) {
+      assignedParticipantNames.add(normalizeName(a.secondParticipantName));
+    }
   });
 
   const activeParticipants = participants.filter((p) =>
@@ -122,21 +140,15 @@ const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(f
 
   const participantCounts = {};
   filteredAssignments.forEach((a) => {
-    if (a.participantName) {
-      participantCounts[a.participantName] =
-        (participantCounts[a.participantName] || 0) + 1;
+    if (a.participantName && !replacedParticipantNames.has(normalizeName(a.participantName))) {
+      participantCounts[a.participantName] = (participantCounts[a.participantName] || 0) + 1;
     }
-    if (a.secondParticipantName) {
-      participantCounts[a.secondParticipantName] =
-        (participantCounts[a.secondParticipantName] || 0) + 1;
+    if (a.secondParticipantName && !replacedParticipantNames.has(normalizeName(a.secondParticipantName))) {
+      participantCounts[a.secondParticipantName] = (participantCounts[a.secondParticipantName] || 0) + 1;
     }
   });
   const topParticipantsFull = Object.entries(participantCounts)
     .sort((a, b) => b[1] - a[1]);
-
-
-
-
 
   const participantsToShow = showAllParticipants
     ? topParticipantsFull
@@ -153,16 +165,16 @@ const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(f
   const replacementsReceivedSorted = Object.entries(replacementsReceived).sort((a, b) => b[1] - a[1]);
 
   const displayedReplacementsMade = showAllReplacementsMade
-  ? replacementsMadeSorted
-  : replacementsMadeSorted.slice(0, 5);
+    ? replacementsMadeSorted
+    : replacementsMadeSorted.slice(0, 5);
 
-const displayedReplacementsReceived = showAllReplacementsReceived
-  ? replacementsReceivedSorted
-  : replacementsReceivedSorted.slice(0, 5);
+  const displayedReplacementsReceived = showAllReplacementsReceived
+    ? replacementsReceivedSorted
+    : replacementsReceivedSorted.slice(0, 5);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+      <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="w-12 h-12 border-4 border-gray-600 border-t-indigo-700 rounded-full animate-spin"></div>
         <p className="mt-4 text-gray-300 text-lg font-semibold">
           Cargando estadísticas...
@@ -173,9 +185,30 @@ const displayedReplacementsReceived = showAllReplacementsReceived
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
-        <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
-      </h2>
+      <div className="flex flex-col items-center">
+        <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
+          <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
+        </h2>
+        {/* Month filter dropdown */}
+        <div className="mt-4">
+          <label htmlFor="monthFilter" className="mr-2 text-gray-700 dark:text-gray-300">
+           Mostrar:
+          </label>
+          <select
+            id="monthFilter"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="p-2 border rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+          >
+            <option value="all">Todos los meses</option>
+            {availableMonths.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -286,49 +319,47 @@ const displayedReplacementsReceived = showAllReplacementsReceived
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
-    <h3 className="text-xl font-semibold mb-4">Top Reemplazos</h3>
-    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-      {displayedReplacementsMade.map(([name, count]) => (
-        <li key={name} className="flex justify-between py-2">
-          <span className="text-gray-800 dark:text-gray-100">{name}</span>
-          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{count}</span>
-        </li>
-      ))}
-    </ul>
-    {replacementsMadeSorted.length > 5 && (
-      <button
-        onClick={() => setShowAllReplacementsMade(!showAllReplacementsMade)}
-        className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
-      >
-        {showAllReplacementsMade ? "Mostrar menos" : "Mostrar más"}
-      </button>
-    )}
-  </div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
+          <h3 className="text-xl font-semibold mb-4">Top Reemplazos</h3>
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+            {displayedReplacementsMade.map(([name, count]) => (
+              <li key={name} className="flex justify-between py-2">
+                <span className="text-gray-800 dark:text-gray-100">{name}</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{count}</span>
+              </li>
+            ))}
+          </ul>
+          {replacementsMadeSorted.length > 5 && (
+            <button
+              onClick={() => setShowAllReplacementsMade(!showAllReplacementsMade)}
+              className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+            >
+              {showAllReplacementsMade ? "Mostrar menos" : "Mostrar más"}
+            </button>
+          )}
+        </div>
 
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
-    <h3 className="text-xl font-semibold mb-4">Top Reemplazados</h3>
-    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-      {displayedReplacementsReceived.map(([name, count]) => (
-        <li key={name} className="flex justify-between py-2">
-          <span className="text-gray-800 dark:text-gray-100">{name}</span>
-          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{count}</span>
-        </li>
-      ))}
-    </ul>
-    {replacementsReceivedSorted.length > 5 && (
-      <button
-        onClick={() => setShowAllReplacementsReceived(!showAllReplacementsReceived)}
-        className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
-      >
-        {showAllReplacementsReceived ? "Mostrar menos" : "Mostrar más"}
-      </button>
-    )}
-  </div>
-</div>
-
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
+          <h3 className="text-xl font-semibold mb-4">Top Reemplazados</h3>
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+            {displayedReplacementsReceived.map(([name, count]) => (
+              <li key={name} className="flex justify-between py-2">
+                <span className="text-gray-800 dark:text-gray-100">{name}</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{count}</span>
+              </li>
+            ))}
+          </ul>
+          {replacementsReceivedSorted.length > 5 && (
+            <button
+              onClick={() => setShowAllReplacementsReceived(!showAllReplacementsReceived)}
+              className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+            >
+              {showAllReplacementsReceived ? "Mostrar menos" : "Mostrar más"}
+            </button>
+          )}
+        </div>
       </div>
-    
+    </div>
   );
 };
 

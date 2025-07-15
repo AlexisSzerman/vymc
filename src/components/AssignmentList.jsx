@@ -77,7 +77,7 @@ const AssignmentList = ({
         currentAssignments.map((a) => (
           <div
             key={a.id}
-            className="p-4 border border-gray-700 bg-gray-800 rounded flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0"
+            className="p-4 border border-gray-700 bg-gray-800 rounded flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 hover:bg-gray-700 transition"
           >
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-200 truncate">

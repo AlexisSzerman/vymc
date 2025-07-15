@@ -87,9 +87,9 @@ const PublicViewPage = ({ db, showMessage }) => {
       unsubscribeAssignments();
       unsubscribeReminder();
     };
-  }, [db, showMessage, weekOffset]); 
+  }, [db, showMessage, weekOffset]);
 
-   const getIconClass = (type) => {
+  const getIconClass = (type) => {
     switch (type) {
       case "Asamblea Regional":
         return "jw-icon jw-icon-001";
@@ -105,7 +105,6 @@ const PublicViewPage = ({ db, showMessage }) => {
         return "";
     }
   };
-
 
   const { startOfWeek, endOfWeek } = getMeetingWeekDates(
     new Date(),
@@ -133,20 +132,22 @@ const PublicViewPage = ({ db, showMessage }) => {
 
       {publicReminderMessage && (
         <div className="bg-yellow-100 dark:bg-yellow-800 p-4 rounded-lg shadow-md border border-yellow-300 dark:border-yellow-700 text-center">
-  <p className="text-lg font-semibold text-yellow-800 dark:text-yellow-100">
-    ¡RECORDATORIO!
-  </p>
-  {reminderType && (
-    <div className="flex justify-center mt-2"> {/* New div for centering the icon */}
-      <span className={`${getIconClass(reminderType)} text-4xl`} /> {/* Increased icon size for better visibility */}
-    </div>
-  )}
-  <p className="text-gray-800 dark:text-gray-200 mt-2">
-    {publicReminderMessage}
-  </p>
-</div>
+          <p className="text-lg font-semibold text-yellow-800 dark:text-yellow-100">
+            ¡RECORDATORIO!
+          </p>
+          {reminderType && (
+            <div className="flex justify-center mt-2">
+              {" "}
+              {/* New div for centering the icon */}
+              <span className={`${getIconClass(reminderType)} text-4xl`} />{" "}
+              {/* Increased icon size for better visibility */}
+            </div>
+          )}
+          <p className="text-gray-800 dark:text-gray-200 mt-2">
+            {publicReminderMessage}
+          </p>
+        </div>
       )}
-
 
       <div className="flex justify-center mt-4 px-2">
         <div className="flex items-center bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
@@ -155,7 +156,7 @@ const PublicViewPage = ({ db, showMessage }) => {
             onClick={() => setWeekOffset((prev) => prev - 1)}
             className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
           >
-            <ChevronLeft  className="w-7 h-7" strokeWidth={3} />
+            <ChevronLeft className="w-7 h-7" strokeWidth={3} />
           </button>
 
           {/* Texto de la semana */}
@@ -199,72 +200,81 @@ const PublicViewPage = ({ db, showMessage }) => {
           const shownSections = new Set();
 
           return (
-
             <div className="mx-auto px-4 max-w-screen-lg">
-            <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
-              {assignments.map((assignment) => {
-                const section = SECTION_MAP[assignment.type];
-                let banner = null;
+              <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
+                {assignments.map((assignment) => {
+                  const section = SECTION_MAP[assignment.type];
+                  let banner = null;
 
-                if (section && !shownSections.has(section)) {
-                  shownSections.add(section);
+                  if (section && !shownSections.has(section)) {
+                    shownSections.add(section);
 
-                  if (section === "tesoros") {
-                    banner = (
-                      <div className="flex items-center gap-2 bg-teal-100 dark:bg-teal-700 text-teal-800 dark:text-teal-100 px-4 py-2 rounded-md my-4">
-                       {/* <Gem className="w-5 h-5" /> */}
-                       <span className="jw-icon jw-icon-092 text-2xl leading-none"></span>
-                        <span className="font-semibold">
-                          Tesoros de la Biblia
-                        </span>
-                      </div>
-                    );
-                  } else if (section === "maestros") {
-                    banner = (
-                      <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-100 px-4 py-2 rounded-md my-4">
-                       {/* <Wheat className="w-5 h-5" /> */}
-                       <span className="jw-icon jw-icon-236 text-2xl leading-none"></span>
-                        <span className="font-semibold">
-                          Seamos Mejores Maestros
-                        </span>
-                      </div>
-                    );
-                  } else if (section === "vida") {
-                    banner = (
-                      <div className="flex items-center gap-2 bg-red-100 dark:bg-red-700 text-red-800 dark:text-red-100 px-4 py-2 rounded-md my-4">
-                        {/* <Users className="w-5 h-5" /> */}
-                        <span className="jw-icon jw-icon-187 text-2xl leading-none" />
-                        <span className="font-semibold">
-                          Nuestra Vida Cristiana
-                        </span>
-                      </div>
-                    );
+                    if (section === "tesoros") {
+                      banner = (
+                        <div className="flex items-center gap-2 bg-teal-100 dark:bg-teal-700 text-teal-800 dark:text-teal-100 px-4 py-2 rounded-md my-4">
+                          <span className="jw-icon jw-icon-092 text-2xl leading-none"></span>
+                          <span className="font-semibold">
+                            Tesoros de la Biblia
+                          </span>
+                        </div>
+                      );
+                    } else if (section === "maestros") {
+                      banner = (
+                        <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-100 px-4 py-2 rounded-md my-4">
+                          <span className="jw-icon jw-icon-236 text-2xl leading-none"></span>
+                          <span className="font-semibold">
+                            Seamos Mejores Maestros
+                          </span>
+                        </div>
+                      );
+                    } else if (section === "vida") {
+                      banner = (
+                        <div className="flex items-center gap-2 bg-red-100 dark:bg-red-700 text-red-800 dark:text-red-100 px-4 py-2 rounded-md my-4">
+                          {/* <Users className="w-5 h-5" /> */}
+                          <span className="jw-icon jw-icon-187 text-2xl leading-none" />
+                          <span className="font-semibold">
+                            Nuestra Vida Cristiana
+                          </span>
+                        </div>
+                      );
+                    }
                   }
-                }
 
-                return (
-                  <React.Fragment key={assignment.id}>
-                    {banner}
-                    <li className="py-4">
-                      <p className="text-lg text-gray-700 dark:text-gray-300">
-                        <span className="text-lg text-gray-900 dark:text-white font-bold">
-                          {formatAssignmentType(assignment.type)}
-                        </span>
-                        {assignment.title && <>: {assignment.title}</>}
-                      </p>
-                      <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
-                        {assignment.participantName && (
-                          <>Asignado a: {assignment.participantName}</>
-                        )}
-                        {assignment.secondParticipantName && (
-                          <> y {assignment.secondParticipantName}</>
-                        )}
-                      </p>
-                    </li>
-                  </React.Fragment>
-                );
-              })}
-            </ul>
+                  return (
+                    <React.Fragment key={assignment.id}>
+                      {banner}
+                      <li className="py-4">
+                        <p className="text-lg text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                          <span className="text-lg text-gray-900 dark:text-white font-bold flex items-center gap-1">
+                            {assignment.type === "cancion" && (
+                              <span
+                                className="jw-icon jw-icon-133 text-2xl leading-none"
+                                aria-label="Icono Canción"
+                              />
+                            )}
+                            {formatAssignmentType(assignment.type)}
+                          </span>
+                          {assignment.title && (
+                            <>
+                              {assignment.type !== "cancion" && ":"}{" "}
+                              {assignment.title}
+                            </>
+                          )}
+                        </p>
+
+                        <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
+                          {assignment.participantName && (
+                            <>Asignado a: {assignment.participantName}</>
+                          )}
+                          {assignment.secondParticipantName && (
+                            <> y {assignment.secondParticipantName}</>
+                          )}
+                        </p>
+                      </li>
+                    </React.Fragment>
+                  );
+                })}
+              </ul>
             </div>
           );
         })()
