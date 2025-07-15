@@ -1,3 +1,4 @@
 export const authorizedEmails = [
-  "alexszer1986@gmail.com"
+  "alexszer1986@gmail.com",
+  "julietaj.ponce@gmail.com"
 ];
