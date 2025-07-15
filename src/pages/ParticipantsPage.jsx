@@ -183,9 +183,10 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       </h2>
 
       <form
-        onSubmit={handleAddOrUpdate}
-        className="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-inner space-y-4"
-      >
+  onSubmit={handleAddOrUpdate}
+  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-6 rounded-xl shadow-inner space-y-4"
+>
+
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -210,7 +211,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
             {ASSIGNMENT_TYPES.map((type) => (
               <label
                 key={type}
-                className="flex items-center gap-2 text-sm text-gray-200"
+                className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
               >
                 {enabledAssignments.includes(type) ? (
                   <CheckSquare
@@ -238,7 +239,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
             {ASSIGNMENT_TYPES.map((type) => (
               <label
                 key={`exclude-${type}`}
-                className="flex items-center gap-2 text-sm text-gray-200"
+                className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
               >
                 {excludedFromTypes.includes(type) ? (
                   <CheckSquare
@@ -266,7 +267,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 setNewName("");
                 setNewNotes("");
                 setEnabledAssignments([]);
-                setExcludedFromTypes([]); // Reset exclusion status on cancel
+                setExcludedFromTypes([]); 
               }}
               className="px-4 py-2 bg-gray-500 text-white rounded"
             >
@@ -302,7 +303,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               className="py-3 flex justify-between items-center text-white"
             >
               <div>
-                <p className="font-semibold">{p.name}</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">{p.name}</p>
                 {p.notes && (
                   <p className="text-sm text-gray-400">{p.notes}</p>
                 )}
