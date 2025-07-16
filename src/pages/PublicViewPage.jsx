@@ -13,7 +13,7 @@ const appId = "default-app-id";
 const PublicViewPage = ({ db, showMessage }) => {
   const [assignments, setAssignments] = useState([]);
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
-  const [reminderType, setReminderType] = useState(""); // <--- Add this line
+  const [reminderType, setReminderType] = useState("");
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -137,10 +137,7 @@ const PublicViewPage = ({ db, showMessage }) => {
           </p>
           {reminderType && (
             <div className="flex justify-center mt-2">
-              {" "}
-              {/* New div for centering the icon */}
-              <span className={`${getIconClass(reminderType)} text-4xl`} />{" "}
-              {/* Increased icon size for better visibility */}
+              <span className={`${getIconClass(reminderType)} text-4xl`} />
             </div>
           )}
           <p className="text-gray-800 dark:text-gray-200 mt-2">
@@ -151,15 +148,12 @@ const PublicViewPage = ({ db, showMessage }) => {
 
       <div className="flex justify-center mt-4 px-2">
         <div className="flex items-center bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-blue-300 rounded overflow-hidden text-sm sm:text-base font-medium shadow-inner divide-x divide-gray-300 dark:divide-gray-600 w-full max-w-md">
-          {/* Botón anterior */}
           <button
             onClick={() => setWeekOffset((prev) => prev - 1)}
             className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
           >
             <ChevronLeft className="w-7 h-7" strokeWidth={3} />
           </button>
-
-          {/* Texto de la semana */}
           <div className="flex-1 px-4 py-2 text-center whitespace-nowrap">
             <span className="block">
               {weekOffset === 0 ? "Esta semana:" : "Semana del:"}
@@ -168,8 +162,6 @@ const PublicViewPage = ({ db, showMessage }) => {
               {formattedStartDate} - {formattedEndDate}
             </span>
           </div>
-
-          {/* Botón siguiente */}
           <button
             onClick={() => setWeekOffset((prev) => prev + 1)}
             className="flex items-center justify-center w-12 sm:w-12 h-full hover:bg-gray-200 dark:hover:bg-gray-600 transition"
@@ -230,7 +222,6 @@ const PublicViewPage = ({ db, showMessage }) => {
                     } else if (section === "vida") {
                       banner = (
                         <div className="flex items-center gap-2 bg-red-100 dark:bg-red-700 text-red-800 dark:text-red-100 px-4 py-2 rounded-md my-4">
-                          {/* <Users className="w-5 h-5" /> */}
                           <span className="jw-icon jw-icon-187 text-2xl leading-none" />
                           <span className="font-semibold">
                             Nuestra Vida Cristiana
@@ -244,15 +235,17 @@ const PublicViewPage = ({ db, showMessage }) => {
                     <React.Fragment key={assignment.id}>
                       {banner}
                       <li className="py-4">
-                        <p className="text-lg text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                          <span className="text-lg text-gray-900 dark:text-white font-bold flex items-center gap-1">
+                        <p className="text-lg text-gray-700 dark:text-gray-300">
+                          <span className="text-lg text-gray-900 dark:text-white font-bold inline-flex items-center gap-1">
                             {assignment.type === "cancion" && (
                               <span
                                 className="jw-icon jw-icon-133 text-2xl leading-none"
                                 aria-label="Icono Canción"
                               />
                             )}
-                            {formatAssignmentType(assignment.type)}
+                            <span className="whitespace-nowrap">
+                              {formatAssignmentType(assignment.type)}
+                            </span>
                           </span>
                           {assignment.title && (
                             <>
