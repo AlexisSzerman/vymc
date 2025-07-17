@@ -236,10 +236,11 @@ const PublicViewPage = ({ db, showMessage }) => {
                       {banner}
                       <li className="py-4">
                         <p className="text-lg text-gray-700 dark:text-gray-300">
-                          <span className="text-lg text-gray-900 dark:text-white font-bold inline-flex items-center gap-1">
+                          <span className="text-lg text-gray-900 dark:text-white font-bold inline-flex items-center gap-1 leading-tight">
+
                             {assignment.type === "cancion" && (
                               <span
-                                className="jw-icon jw-icon-133 text-2xl leading-none"
+                                className="jw-icon jw-icon-133 text-xl align-middle leading-none"
                                 aria-label="Icono Canción"
                               />
                             )}

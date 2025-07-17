@@ -12,10 +12,11 @@ const AssignmentSuggestions = ({
   const [confirmado, setConfirmado] = useState(false);
 
   const handleConfirm = () => {
-    if (selectedTitular) setSelectedParticipantId(selectedTitular);
-    if (selectedAyudante) setSecondSelectedParticipantId(selectedAyudante);
+    if (selectedTitular) setSelectedParticipantId(String(selectedTitular));
+    if (selectedAyudante)
+      setSecondSelectedParticipantId(String(selectedAyudante));
     setConfirmado(true);
-    setTimeout(() => setConfirmado(false), 3000); // Feedback temporal
+    setTimeout(() => setConfirmado(false), 3000);
   };
 
   const renderSuggestions = (suggestions, selected, setSelected, label) => (
@@ -29,10 +30,11 @@ const AssignmentSuggestions = ({
                 type="radio"
                 name={label}
                 value={p.id}
-                checked={selected === p.id}
-                onChange={() => setSelected(p.id)}
+                checked={selected === String(p.id)}
+                onChange={() => setSelected(String(p.id))}
                 className="accent-blue-600"
               />
+
               <label className="flex-1 text-sm text-gray-200">
                 {p.name} (
                 {p.diasSinAsignacion === Infinity
@@ -59,16 +61,32 @@ const AssignmentSuggestions = ({
     <div className="mt-4 border border-blue-800 bg-blue-950 p-4 rounded text-blue-100 shadow-md">
       <p className="text-lg font-bold mb-2">Sugerencias</p>
       {generalSuggestions.length > 0 &&
-        renderSuggestions(generalSuggestions, selectedTitular, setSelectedTitular, "Titular")}
+        renderSuggestions(
+          generalSuggestions,
+          selectedTitular,
+          setSelectedTitular,
+          "Titular"
+        )}
       {titularSuggestions.length > 0 &&
-        renderSuggestions(titularSuggestions, selectedTitular, setSelectedTitular, "Titular")}
+        renderSuggestions(
+          titularSuggestions,
+          selectedTitular,
+          setSelectedTitular,
+          "Titular"
+        )}
       {ayudanteSuggestions.length > 0 &&
-        renderSuggestions(ayudanteSuggestions, selectedAyudante, setSelectedAyudante, "Ayudante")}
+        renderSuggestions(
+          ayudanteSuggestions,
+          selectedAyudante,
+          setSelectedAyudante,
+          "Ayudante"
+        )}
       <div className="mt-4 flex justify-between items-center">
         {confirmado && (
-          <p className="text-green-400 text-sm">Selección confirmada</p>
+          <p className="text-indigo-600 text-sm">Selección confirmada</p>
         )}
         <button
+         type="button"
           onClick={handleConfirm}
           className="ml-auto px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded text-sm"
         >
@@ -80,5 +98,3 @@ const AssignmentSuggestions = ({
 };
 
 export default AssignmentSuggestions;
-
-
