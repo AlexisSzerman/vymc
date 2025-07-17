@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 
 // __app_id es una variable global proporcionada por el entorno Canvas
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const appId = 'default-app-id';
 
 const useAssignmentsData = (db, userId) => {
   const [participants, setParticipants] = useState([]);
