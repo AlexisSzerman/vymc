@@ -93,7 +93,7 @@ const useAssignmentForm = (db, userId, appId, showMessage, allAssignments, parti
       participantId: selectedParticipantId || null,
       participantName:
         participants.find((p) => p.id === selectedParticipantId)?.name || null,
-      published: editingAssignment ? editingAssignment.published : false, // Mantiene el estado de publicación al editar
+      published: editingAssignment?.published ?? false,
     };
 
     // Lógica específica para asignaciones de "demostracion"
