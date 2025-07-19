@@ -129,7 +129,8 @@ export default function AssistantBotWidget({ db, appId, userId }) {
         className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
         aria-label="Abrir búsqueda rápida"
       >
-        <span className="text-3xl">💬</span>
+        {/* <span className="text-3xl">🔍</span> */}
+        <span className="jw-icon jw-icon-125 text-2xl leading-none"></span>
       </button>
 
       <Transition
