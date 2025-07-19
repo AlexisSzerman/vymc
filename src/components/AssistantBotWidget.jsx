@@ -81,10 +81,11 @@ export default function AssistantBotWidget({ db, appId, userId }) {
 
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  const findParticipantByName = (input) => {
-    const normalizedInput = normalizeText(input);
-    return participants.find(p => normalizeText(p.name) === normalizedInput);
-  };
+const filterParticipantsByPartialName = (input) => {
+  const normalizedInput = normalizeText(input);
+  return participants.filter(p => normalizeText(p.name).includes(normalizedInput));
+};
+
 
 const filterAssignments = (participantName, upcoming = true) => {
   if (!participantName) return [];
@@ -153,64 +154,84 @@ const filterAssignments = (participantName, upcoming = true) => {
           </div>
 
           <div className="p-4 text-gray-200 flex-grow overflow-y-auto custom-scrollbar"> {/* Se agregó custom-scrollbar */}
-            {(activeTab === "proximas" || activeTab === "pasadas") && (
-              <>
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={e => setNameInput(e.target.value)}
-                  placeholder="Escriba el nombre completo del participante"
-                  className="w-full px-4 py-2 mb-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
-                  spellCheck={false}
-                />
-                {nameInput.trim() === "" ? (
-                  <div className="text-gray-400 text-sm italic p-2 rounded-md bg-gray-700 border border-gray-600">
-                    Escriba un nombre para ver las asignaciones.
-                  </div>
-                ) : (
-                  (() => {
-                    const participant = findParticipantByName(nameInput);
-                    if (!participant) return <div className="text-red-300 text-sm italic p-2 rounded-md bg-gray-700 border border-gray-600">No se encontró ningún participante con ese nombre.</div>;
+           {(activeTab === "proximas" || activeTab === "pasadas") && (
+  <>
+    <input
+      type="text"
+      value={nameInput}
+      onChange={e => setNameInput(e.target.value)}
+      placeholder="Escriba un nombre o apellido"
+      className="w-full px-4 py-2 mb-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
+      spellCheck={false}
+    />
 
-                    const filtered = filterAssignments(participant.name, activeTab === "proximas");
-                    if (filtered.length === 0) return <div className="text-gray-400 text-sm italic p-2 rounded-md bg-gray-700 border border-gray-600">No hay asignaciones {activeTab === "proximas" ? "próximas" : "pasadas"} para <span className="font-semibold text-indigo-300">{participant.name}</span>.</div>;
+    {nameInput.trim() === "" ? (
+      <div className="text-gray-400 text-sm italic p-2 rounded-md bg-gray-700 border border-gray-600">
+        Escriba un nombre o apellido para ver las asignaciones.
+      </div>
+    ) : (
+      (() => {
+        const matchedParticipants = filterParticipantsByPartialName(nameInput);
+        if (matchedParticipants.length === 0) {
+          return (
+            <div className="text-red-300 text-sm italic p-2 rounded-md bg-gray-700 border border-gray-600">
+              No se encontró ningún participante con ese nombre.
+            </div>
+          );
+        }
 
-                    return (
-                      <ul className="space-y-2"> {/* Reducido el espacio entre elementos */}
-                        {[...filtered]
-                          .sort((a, b) => (a.date || a.id).localeCompare(b.date || b.id))
-                          .map((a) => {
-                            const main = a.participantName || "";
-                            const helper = a.secondParticipantName || "";
-                            const isMain = normalizeText(main) === normalizeText(participant.name);
-                            const isHelper = normalizeText(helper) === normalizeText(participant.name);
+        return matchedParticipants.map((participant) => {
+          const filtered = filterAssignments(participant.name, activeTab === "proximas");
+          return (
+            <div key={participant.id} className="mb-4">
+              <p className="text-sm font-semibold text-indigo-400 mb-2 border-b border-gray-700 pb-1">
+                {participant.name}
+              </p>
 
-                            let roleInfo = "";
+              {filtered.length === 0 ? (
+                <div className="text-gray-400 text-xs italic p-2 rounded-md bg-gray-700 border border-gray-600">
+                  No hay asignaciones {activeTab === "proximas" ? "próximas" : "pasadas"} para <span className="font-semibold text-indigo-300">{participant.name}</span>.
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {[...filtered]
+                    .sort((a, b) => (a.date || a.id).localeCompare(b.date || b.id))
+                    .map((a) => {
+                      const main = a.participantName || "";
+                      const helper = a.secondParticipantName || "";
+                      const isMain = normalizeText(main) === normalizeText(participant.name);
+                      const isHelper = normalizeText(helper) === normalizeText(participant.name);
 
-                            if (isHelper && !isMain && main) {
-                              roleInfo = `como ayudante de ${main}`;
-                            } else if (isMain && helper && normalizeText(helper) !== normalizeText(main)) {
-                              roleInfo = `junto a ${helper}`;
-                            }
+                      let roleInfo = "";
 
-                            return (
-                              <li key={a.id} className="py-1 border-b border-gray-700 last:border-b-0"> {/* Estilo de lista simple */}
-                                <p className="text-white">
-                                  <span className="font-semibold">{formatAssignmentType(a.type)}</span>
-                                  <span className="text-sm text-indigo-300 ml-2">— {formatDateAr(a.date || a.id)}</span>
-                                </p>
-                                {roleInfo && (
-                                  <p className="text-xs text-gray-400 italic mt-0.5">({roleInfo})</p>
-                                )}
-                              </li>
-                            );
-                          })}
-                      </ul>
-                    );
-                  })()
-                )}
-              </>
-            )}
+                      if (isHelper && !isMain && main) {
+                        roleInfo = `como ayudante de ${main}`;
+                      } else if (isMain && helper && normalizeText(helper) !== normalizeText(main)) {
+                        roleInfo = `junto a ${helper}`;
+                      }
+
+                      return (
+                        <li key={a.id} className="py-1 border-b border-gray-700 last:border-b-0">
+                          <p className="text-white">
+                            <span className="font-semibold">{formatAssignmentType(a.type)}</span>
+                            <span className="text-sm text-indigo-300 ml-2">— {formatDateAr(a.date || a.id)}</span>
+                          </p>
+                          {roleInfo && (
+                            <p className="text-xs text-gray-400 italic mt-0.5">({roleInfo})</p>
+                          )}
+                        </li>
+                      );
+                    })}
+                </ul>
+              )}
+            </div>
+          );
+        });
+      })()
+    )}
+  </>
+)}
+
 
             {activeTab === "recordatorios" && (
               <>
