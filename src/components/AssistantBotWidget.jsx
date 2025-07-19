@@ -42,7 +42,16 @@ export default function AssistantBotWidget({ db, appId, userId }) {
         const pSnap = await getDocs(collection(db, `artifacts/${appId}/public/data/participants`));
         const rSnap = await getDocs(collection(db, `artifacts/${appId}/public/data/public_reminders`));
 
-        setAssignments(aSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const assignmentsData = aSnap.docs.map((doc) => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    published: Object.prototype.hasOwnProperty.call(data, "published") ? data.published : true,
+  };
+});
+    
+        setAssignments(assignmentsData);
         setParticipants(pSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         // Para recordatorios, aseguramos que 'id' sea el ID del documento y 'date' sea el campo
         setReminders(rSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -77,16 +86,17 @@ export default function AssistantBotWidget({ db, appId, userId }) {
     return participants.find(p => normalizeText(p.name) === normalizedInput);
   };
 
-  const filterAssignments = (participantName, upcoming = true) => {
-    if (!participantName) return [];
-    return assignments.filter(a => {
-      const names = [a.participantName, a.secondParticipantName].filter(n => typeof n === "string");
-      const matchName = names.some(n => normalizeText(n) === normalizeText(participantName));
-      if (!matchName) return false;
-      if (!a.date) return false;
-      return upcoming ? a.date >= todayStr : a.date < todayStr;
-    });
-  };
+const filterAssignments = (participantName, upcoming = true) => {
+  if (!participantName) return [];
+  return assignments.filter(a => {
+    if (!a.published) return false;  // Solo publicadas
+    const names = [a.participantName, a.secondParticipantName].filter(n => typeof n === "string");
+    const matchName = names.some(n => normalizeText(n) === normalizeText(participantName));
+    if (!matchName) return false;
+    if (!a.date) return false;
+    return upcoming ? a.date >= todayStr : a.date < todayStr;
+  });
+};
 
   const getReminderByType = (type) => {
     if (!type) return null;
@@ -100,7 +110,7 @@ export default function AssistantBotWidget({ db, appId, userId }) {
         ref={buttonRef} // Asignar referencia al botón
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-        aria-label="Abrir asistente"
+        aria-label="Abrir búsqueda rápida"
       >
         <span className="text-3xl">💬</span>
       </button>
@@ -119,7 +129,7 @@ export default function AssistantBotWidget({ db, appId, userId }) {
           className="fixed bottom-24 right-6 w-80 max-h-[80vh] flex flex-col border border-gray-700 bg-gray-800 rounded-xl shadow-2xl z-50 overflow-hidden"
         >
           <div className="p-4 bg-gray-900 text-indigo-300 font-bold flex flex-col gap-3">
-            <h2 className="text-xl">Asistente</h2>
+            <h2 className="text-xl">Búsqueda Rápida</h2>
             <div className="flex justify-between text-sm overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide"> {/* Se agregó overflow-x para pantallas más pequeñas */}
               <button
                 className={`flex-shrink-0 px-3 py-1 rounded-full transition duration-200 ${activeTab === "proximas" ? "bg-indigo-600 text-white shadow-md" : "hover:bg-indigo-700 text-indigo-200"}`}
