@@ -55,10 +55,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   useEffect(() => {
     if (!db || !userId) return;
 
-    const colRef = collection(
-      db,
-      `artifacts/${appId}/users/${userId}/participants`
-    );
+    const colRef = collection(db, `artifacts/${appId}/public/data/participants`);
     const unsubscribe = onSnapshot(
       colRef,
       (snapshot) => {
@@ -97,7 +94,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
         await updateDoc(
           doc(
             db,
-            `artifacts/${appId}/users/${userId}/participants`,
+            `artifacts/${appId}/public/data/participants`,
             editingParticipant.id
           ),
           data
@@ -106,7 +103,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
         setEditingParticipant(null);
       } else {
         await addDoc(
-          collection(db, `artifacts/${appId}/users/${userId}/participants`),
+          collection(db, `artifacts/${appId}/public/data/participants`),
           data
         );
         showMessage("Participante añadido.");
@@ -141,7 +138,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       await deleteDoc(
         doc(
           db,
-          `artifacts/${appId}/users/${userId}/participants`,
+          `artifacts/${appId}/public/data/participants`,
           participantToDelete.id
         )
       );

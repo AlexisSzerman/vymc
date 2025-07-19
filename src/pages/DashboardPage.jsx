@@ -51,7 +51,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
           await Promise.all([
             getDocs(collection(db, `artifacts/${appId}/public/data/assignments`)),
             getDocs(collection(db, `artifacts/${appId}/public/data/replacements`)),
-            getDocs(collection(db, `artifacts/${appId}/users/${authUser.uid}/participants`))
+            getDocs(collection(db, `artifacts/${appId}/public/data/participants`))
           ]);
 
         const a = assignmentsSnap.docs.map((doc) => ({
