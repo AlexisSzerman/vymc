@@ -100,7 +100,8 @@ const ReminderManager = ({ db, showMessage }) => {
             onChange={(e) => setReminderType(e.target.value)}
             className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="">Otros</option>
+            <option value="">Seleccionar tipo</option>
+            <option value="Otros">Otros</option>
             <option value="Asamblea de Circuito">Asamblea de Circuito</option>
             <option value="Asamblea Regional">Asamblea Regional</option>
             <option value="Visita del Superintendente">Visita del Superintendente</option>

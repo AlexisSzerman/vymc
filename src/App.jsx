@@ -21,6 +21,7 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import Navigation from "./components/Navigation";
 import Header from "./components/Header";
 import DashboardPage from "./pages/DashboardPage";
+import AssistantBotWidget from "./components/AssistantBotWidget";
 
 const App = () => {
   const [db, setDb] = useState(null);
@@ -212,8 +213,10 @@ const App = () => {
           )}
         </main>
       </div>
+          <AssistantBotWidget db={db} appId="default-app-id" userId={authUser?.uid || 'default-user-id'} />
     </div>
   );
 };
 
 export default App;
+
