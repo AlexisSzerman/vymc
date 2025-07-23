@@ -15,11 +15,10 @@ import {
   CheckSquare,
   Square,
   Search,
-  Pencil, 
-  Trash2
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { formatAssignmentType } from "../utils/helpers"; // Make sure this path is correct
-
 
 const appId = "default-app-id";
 
@@ -37,9 +36,8 @@ const ASSIGNMENT_TYPES = [
   "necesidades",
   "lectura-biblia",
   "lectura-libro",
-  "ayudante", // 'ayudante' is a role often associated with 'demostracion' but can be a standalone type for exclusion purposes
+  "ayudante",
 ];
-
 
 const ParticipantsPage = ({ db, userId, showMessage }) => {
   const [participants, setParticipants] = useState([]);
@@ -51,11 +49,18 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToDelete, setParticipantToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [reminder, setReminder] = React.useState({
+    enabled: false,
+    message: "",
+  });
 
   useEffect(() => {
     if (!db || !userId) return;
 
-    const colRef = collection(db, `artifacts/${appId}/public/data/participants`);
+    const colRef = collection(
+      db,
+      `artifacts/${appId}/public/data/participants`
+    );
     const unsubscribe = onSnapshot(
       colRef,
       (snapshot) => {
@@ -86,8 +91,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
         name: newName.trim(),
         notes: newNotes.trim(),
         enabledAssignments: enabledAssignments,
-        // Ensure excludedFromTypes is stored as an array, default to empty if not set
         excludedFromAssignmentTypes: excludedFromTypes || [],
+        reminder: reminder,
       };
 
       if (editingParticipant) {
@@ -125,6 +130,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     setEnabledAssignments(p.enabledAssignments || []);
     // Load exclusion status, defaulting to empty array if not present in Firestore
     setExcludedFromTypes(p.excludedFromAssignmentTypes || []);
+    setReminder(p.reminder || { enabled: false, message: "", date: "" });
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
 
@@ -163,7 +169,9 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   // Function to toggle exclusion for a specific type
   const toggleExclusionForType = (typeToExclude) => {
     if (excludedFromTypes.includes(typeToExclude)) {
-      setExcludedFromTypes(excludedFromTypes.filter((type) => type !== typeToExclude));
+      setExcludedFromTypes(
+        excludedFromTypes.filter((type) => type !== typeToExclude)
+      );
     } else {
       setExcludedFromTypes([...excludedFromTypes, typeToExclude]);
     }
@@ -180,10 +188,9 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       </h2>
 
       <form
-  onSubmit={handleAddOrUpdate}
-  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-6 rounded-xl shadow-inner space-y-4"
->
-
+        onSubmit={handleAddOrUpdate}
+        className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-6 rounded-xl shadow-inner space-y-4"
+      >
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -200,10 +207,33 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
           value={newNotes}
           onChange={(e) => setNewNotes(e.target.value)}
         />
+        <div className="mt-4">
+          <label className="flex items-center gap-2 text-sm text-gray-400">
+            <input
+              type="checkbox"
+              checked={!!reminder.enabled}
+              onChange={(e) =>
+                setReminder({ ...reminder, enabled: e.target.checked })
+              }
+              className="form-checkbox"
+            />
+            Activar recordatorio
+          </label>
+
+          {reminder.enabled && (
+            <textarea
+              placeholder="Mensaje de recordatorio"
+              value={reminder.message || ""}
+              onChange={(e) =>
+                setReminder({ ...reminder, message: e.target.value })
+              }
+              rows={3}
+              className="w-full mt-2 p-2 rounded bg-gray-900 text-white border border-gray-700 focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          )}
+        </div>
         <div>
-          <p className="text-gray-400 text-sm mb-2">
-            Asignaciones aprobadas:
-          </p>
+          <p className="text-gray-400 text-sm mb-2">Asignaciones aprobadas:</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {ASSIGNMENT_TYPES.map((type) => (
               <label
@@ -264,7 +294,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 setNewName("");
                 setNewNotes("");
                 setEnabledAssignments([]);
-                setExcludedFromTypes([]); 
+                setExcludedFromTypes([]);
               }}
               className="px-4 py-2 bg-gray-500 text-white rounded"
             >
@@ -300,14 +330,22 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               className="py-3 flex justify-between items-center text-white"
             >
               <div>
-                <p className="font-semibold text-gray-700 dark:text-gray-300">{p.name}</p>
-                {p.notes && (
-                  <p className="text-sm text-gray-400">{p.notes}</p>
-                )}
+                <p className="font-semibold text-gray-700 dark:text-gray-300">
+                  {p.name}
+                </p>
+                {p.notes && <p className="text-sm text-gray-400">{p.notes}</p>}
                 {/* Display excluded types for the participant */}
                 {p.excludedFromAssignmentTypes?.length > 0 && (
                   <p className="text-xs text-red-300 mt-1">
-                    Excluido de: {p.excludedFromAssignmentTypes.map(formatAssignmentType).join(', ')}
+                    Excluido de:{" "}
+                    {p.excludedFromAssignmentTypes
+                      .map(formatAssignmentType)
+                      .join(", ")}
+                  </p>
+                )}
+                {p.reminder?.enabled && (
+                  <p className="text-xs text-yellow-300 mt-1">
+                    🔔 {p.reminder.message || "Recordatorio activo"}
                   </p>
                 )}
               </div>
@@ -344,8 +382,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-xl space-y-4 text-white">
             <p>
-              ¿Eliminar a{" "}
-              <strong>{participantToDelete?.name}</strong>?
+              ¿Eliminar a <strong>{participantToDelete?.name}</strong>?
             </p>
             <div className="flex justify-end gap-2">
               <button

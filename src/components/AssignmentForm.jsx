@@ -30,6 +30,12 @@ const AssignmentForm = ({
     "asamblea-regional",
     "cancion",
   ].includes(selectedType);
+  const selectedParticipant = participants.find(
+    (p) => p.id === selectedParticipantId
+  );
+  const secondSelectedParticipant = participants.find(
+    (p) => p.id === secondSelectedParticipantId
+  );
 
   return (
     <form
@@ -95,53 +101,68 @@ const AssignmentForm = ({
         </div>
 
         {/* Selector de Participante Titular */}
-<div>
-  <label className="block text-gray-300 mb-1">Titular</label>
-  <select
-    className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-    value={selectedParticipantId}
-    onChange={(e) => setSelectedParticipantId(e.target.value)}
-    disabled={isAssembly}
-  >
-    <option value="">Selecciona</option>
-    {participants
-      .filter((p) => p.enabledAssignments?.includes(selectedType))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-        </option>
-      ))}
-  </select>
-</div>
+        <div>
+          <label className="block text-gray-300 mb-1">Titular</label>
+          <select
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+            value={selectedParticipantId}
+            onChange={(e) => setSelectedParticipantId(e.target.value)}
+            disabled={isAssembly}
+          >
+            <option value="">Selecciona</option>
+            {participants
+              .filter((p) => p.enabledAssignments?.includes(selectedType))
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+          </select>
 
+          {/* Recordatorio del titular */}
+          {selectedParticipant?.reminder?.enabled && (
+            <div className="mt-2 p-2 bg-yellow-900 border-l-4 border-yellow-500 text-yellow-100 rounded text-sm">
+              🔔 {selectedParticipant.reminder.message || "Recordatorio activo"}
+            </div>
+          )}
+        </div>
 
-{/* Selector de Ayudante (solo para demostraciones) */}
-{selectedType === "demostracion" && (
-  <div>
-    <label className="block text-gray-300 mb-1">Ayudante</label>
-    <select
-      className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
-      value={secondSelectedParticipantId}
-      onChange={(e) => setSecondSelectedParticipantId(e.target.value)}
-    >
-      <option value="">Selecciona</option>
-      {participants
-        .filter(
-          (p) =>
-            p.enabledAssignments?.includes("demostracion") ||
-            p.enabledAssignments?.includes("ayudante")
-        )
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-    </select>
-  </div>
-)}
+        {/* Selector de Ayudante (solo para demostraciones) */}
+        {selectedType === "demostracion" && (
+          <div>
+            <label className="block text-gray-300 mb-1">Ayudante</label>
+            <select
+              className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+              value={secondSelectedParticipantId}
+              onChange={(e) => setSecondSelectedParticipantId(e.target.value)}
+            >
+              <option value="">Selecciona</option>
+              {participants
+                .filter(
+                  (p) =>
+                    p.enabledAssignments?.includes("demostracion") ||
+                    p.enabledAssignments?.includes("ayudante")
+                )
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+            </select>
 
+            {/* Recordatorio del ayudante */}
+          </div>
+        )}
+        {/* Recordatorio del ayudante */}
+        {secondSelectedParticipant?.reminder?.enabled && (
+          <div className="mt-2 p-2 bg-yellow-900 border-l-4 border-yellow-500 text-yellow-100 rounded text-sm">
+            🔔{" "}
+            {secondSelectedParticipant.reminder.message ||
+              "Recordatorio activo"}
+          </div>
+        )}
       </div>
 
       {/* Historial del participante principal */}
@@ -159,7 +180,7 @@ const AssignmentForm = ({
       {secondSelectedParticipantHistory.length > 0 && (
         <ParticipantHistory
           participantHistory={secondSelectedParticipantHistory}
-          selectedParticipantId={secondSelectedParticipantId} // Pasa el ID del segundo participante
+          selectedParticipantId={secondSelectedParticipantId}
           participants={participants}
           replacements={replacements}
           title="Últimas asignaciones de"
