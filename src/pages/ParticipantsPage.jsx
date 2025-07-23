@@ -116,7 +116,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       setNewName("");
       setNewNotes("");
       setEnabledAssignments([]);
-      setExcludedFromTypes([]); // Reset exclusion status after save
+      setExcludedFromTypes([]); 
+      setReminder({ enabled: false, message: "" });
     } catch (error) {
       console.error("Error saving participant:", error);
       showMessage(`Error: ${error.message}`);
@@ -130,7 +131,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     setEnabledAssignments(p.enabledAssignments || []);
     // Load exclusion status, defaulting to empty array if not present in Firestore
     setExcludedFromTypes(p.excludedFromAssignmentTypes || []);
-    setReminder(p.reminder || { enabled: false, message: "", date: "" });
+    setReminder(p.reminder || { enabled: false, message: "" });
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
 
@@ -295,6 +296,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 setNewNotes("");
                 setEnabledAssignments([]);
                 setExcludedFromTypes([]);
+                setReminder({ enabled: false, message: "" });
               }}
               className="px-4 py-2 bg-gray-500 text-white rounded"
             >
