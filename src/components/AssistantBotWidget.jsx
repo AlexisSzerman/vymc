@@ -33,7 +33,21 @@ export default function AssistantBotWidget({ db, appId, userId }) {
   const [selectedReminder, setSelectedReminder] = useState("");
 
   const panelRef = useRef(null);
-  const buttonRef = useRef(null); // Referencia para el botón
+  const buttonRef = useRef(null); 
+  const [isNearBottom, setIsNearBottom] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => {
+    const threshold = 100; // píxeles antes del final
+    const scrollPosition = window.innerHeight + window.scrollY;
+    const pageHeight = document.body.offsetHeight;
+
+    setIsNearBottom(scrollPosition + threshold >= pageHeight);
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,8 +140,10 @@ export default function AssistantBotWidget({ db, appId, userId }) {
       <button
         ref={buttonRef} // Asignar referencia al botón
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-        aria-label="Abrir búsqueda rápida"
+        className={`fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-lg transition duration-300 transform hover:scale-110
+        ${isNearBottom ? "opacity-30" : "opacity-100"}`}
+      aria-label="Abrir búsqueda rápida"
+
       >
         {/* <span className="text-3xl">🔍</span> */}
         <span className="jw-icon jw-icon-125 text-2xl leading-none"></span>

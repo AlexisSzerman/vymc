@@ -81,7 +81,7 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mb-20">
       {/* Encabezado */}
       <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
         <ClipboardList className="w-6 h-6" /> Gestión de Asignaciones

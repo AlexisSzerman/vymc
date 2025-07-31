@@ -125,7 +125,7 @@ const PublicViewPage = ({ db, showMessage }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-20">
       <h2 className="text-3xl font-bold text-indigo-700 dark:text-indigo-300 mb-6 text-center">
         Programa Reunión Vida y Ministerio Cristiano
       </h2>

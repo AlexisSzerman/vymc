@@ -34,7 +34,7 @@ const LoginPage = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-900 dark:to-indigo-950 p-4">
+    <div className="min-h-screen flex items-center justify-center  p-4">
       <form
         onSubmit={handleLogin}
         className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-8 rounded-xl shadow-xl w-full max-w-sm space-y-6"

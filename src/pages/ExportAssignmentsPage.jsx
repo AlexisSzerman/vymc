@@ -111,7 +111,7 @@ const ExportAssignmentsPage = ({ db }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-20">
       <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
         <ArrowDownFromLine className="w-6 h-6" /> Exportar Asignaciones
       </h2>

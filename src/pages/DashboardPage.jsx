@@ -27,8 +27,6 @@ const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "Guillermo Figueiras
 const EXCLUDED_ASSIGNMENT_TYPES = [
   "cancion",
   "visita",
-  "oracion-inicial",
-  "oracion-final"
 ];
 
 const DashboardPage = ({ db, showMessage, authUser }) => {
@@ -127,8 +125,8 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     const key = `${year}-${month}`;
     assignmentsPerMonth[key] = (assignmentsPerMonth[key] || 0) + 1;
   });
-  const barLabels = Object.keys(assignmentsPerMonth).sort();
-  const barData = Object.values(assignmentsPerMonth);
+/*   const barLabels = Object.keys(assignmentsPerMonth).sort();
+  const barData = Object.values(assignmentsPerMonth); */
 
   const replacementsPerType = {};
   filteredReplacements.forEach((r) => {
@@ -241,25 +239,32 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Asignaciones por Mes</h3>
-          {barLabels.length === 0 ? (
+          <h3 className="text-xl font-semibold mb-4">
+            Top Asignados
+          </h3>
+          {participantsToShow.length === 0 ? (
             <p className="text-gray-500">No hay datos.</p>
-          ) : (
-            <Bar
-              data={{
-                labels: barLabels,
-                datasets: [
-                  {
-                    label: "Asignaciones",
-                    data: barData,
-                    backgroundColor: "#6366f1"
-                  }
-                ]
-              }}
-              options={{ plugins: { legend: { display: false } } }}
-            />
-          )}
-        </div>
+        ) : (
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+            {participantsToShow.map(([name, count]) => (
+              <li key={name} className="flex justify-between py-2">
+                <span className="text-gray-800 dark:text-gray-100">{name}</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                  {count}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {topParticipantsFull.length > 5 && (
+          <button
+            onClick={() => setShowAllParticipants(!showAllParticipants)}
+            className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+          >
+            {showAllParticipants ? "Mostrar menos" : "Mostrar más"}
+          </button>
+        )}
+      </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">Reemplazos por Tipo</h3>
           {pieLabels.length === 0 ? (
@@ -290,33 +295,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
-        <h3 className="text-xl font-semibold mb-4">
-          Top Asignados
-        </h3>
-        {participantsToShow.length === 0 ? (
-          <p className="text-gray-500">No hay datos.</p>
-        ) : (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {participantsToShow.map(([name, count]) => (
-              <li key={name} className="flex justify-between py-2">
-                <span className="text-gray-800 dark:text-gray-100">{name}</span>
-                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
-                  {count}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {topParticipantsFull.length > 5 && (
-          <button
-            onClick={() => setShowAllParticipants(!showAllParticipants)}
-            className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
-          >
-            {showAllParticipants ? "Mostrar menos" : "Mostrar más"}
-          </button>
-        )}
-      </div>
+      
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
