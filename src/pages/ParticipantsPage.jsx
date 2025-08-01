@@ -18,7 +18,7 @@ import {
   Search,
   Pencil,
   Trash2,
-  History
+  History,
 } from "lucide-react";
 import { formatAssignmentType } from "../utils/helpers"; // Ajustá la ruta si es necesario
 import ParticipantHistory from "../components/ParticipantHistory"; // Asumo que está en components
@@ -58,9 +58,11 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
 
   // Estados para historial modal
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [selectedParticipantForHistory, setSelectedParticipantForHistory] = useState(null);
+  const [selectedParticipantForHistory, setSelectedParticipantForHistory] =
+    useState(null);
   const [participantHistory, setParticipantHistory] = useState([]);
   const [replacements, setReplacements] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   useEffect(() => {
     if (!db || !userId) return;
@@ -192,33 +194,53 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   const handleOpenHistory = async (participant) => {
     setSelectedParticipantForHistory(participant);
     setShowHistoryModal(true);
+    setIsLoadingHistory(true); // ⬅️ Inicia carga
 
     try {
-      // Obtener asignaciones
-      const assignmentsCol = collection(db, `artifacts/${appId}/public/data/assignments`);
+      const assignmentsCol = collection(
+        db,
+        `artifacts/${appId}/public/data/assignments`
+      );
       const assignmentsSnapshot = await getDocs(assignmentsCol);
-      const assignmentsData = assignmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const assignmentsData = assignmentsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
       const filteredHistory = assignmentsData
-  .filter(a => a.participantId === participant.id || a.secondParticipantId === participant.id)
-  .sort((a, b) => {
-    // Convertir a milisegundos para ordenar bien
-    const dateA = a.date?.seconds ? a.date.seconds * 1000 : new Date(a.date).getTime();
-    const dateB = b.date?.seconds ? b.date.seconds * 1000 : new Date(b.date).getTime();
-    return dateB - dateA; // Descendente
-  });
+        .filter(
+          (a) =>
+            a.participantId === participant.id ||
+            a.secondParticipantId === participant.id
+        )
+        .sort((a, b) => {
+          const dateA = a.date?.seconds
+            ? a.date.seconds * 1000
+            : new Date(a.date).getTime();
+          const dateB = b.date?.seconds
+            ? b.date.seconds * 1000
+            : new Date(b.date).getTime();
+          return dateB - dateA;
+        });
 
       setParticipantHistory(filteredHistory);
 
-      // Obtener reemplazos
-      const replacementsCol = collection(db, `artifacts/${appId}/public/data/replacements`);
+      const replacementsCol = collection(
+        db,
+        `artifacts/${appId}/public/data/replacements`
+      );
       const replacementsSnapshot = await getDocs(replacementsCol);
-      const replacementsData = replacementsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const replacementsData = replacementsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
       setReplacements(replacementsData);
     } catch (error) {
       console.error("Error loading history:", error);
       showMessage(`Error al cargar historial: ${error.message}`);
+    } finally {
+      setIsLoadingHistory(false); // ⬅️ Finaliza carga
     }
   };
 
@@ -404,7 +426,6 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                   <Pencil size={18} />
                 </button>
 
-
                 <button
                   onClick={() => handleDelete(p)}
                   className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded flex items-center gap-1"
@@ -434,13 +455,39 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
               Historial de {selectedParticipantForHistory.name}
             </h3>
 
-            <ParticipantHistory
-              participantHistory={participantHistory}
-              selectedParticipantId={selectedParticipantForHistory.id}
-              participants={participants}
-              replacements={replacements}
-              title="Historial de asignaciones de"
-            />
+           {isLoadingHistory ? (
+  <div className="flex items-center justify-center min-h-[150px] gap-2 text-white">
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v8H4z"
+      ></path>
+    </svg>
+  </div>
+) : (
+  <ParticipantHistory
+    participantHistory={participantHistory}
+    selectedParticipantId={selectedParticipantForHistory.id}
+    participants={participants}
+    replacements={replacements}
+    title="Historial de asignaciones de"
+  />
+)}
+
 
             <button
               onClick={() => setShowHistoryModal(false)}
@@ -482,4 +529,3 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
 };
 
 export default ParticipantsPage;
-
