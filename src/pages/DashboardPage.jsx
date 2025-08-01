@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { Bar, Pie } from "react-chartjs-2";
+import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,6 +11,7 @@ import {
   Legend
 } from "chart.js";
 import { ChartSpline } from "lucide-react";
+import { formatAssignmentType } from "../utils/helpers";
 
 ChartJS.register(
   CategoryScale,
@@ -125,15 +126,16 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     const key = `${year}-${month}`;
     assignmentsPerMonth[key] = (assignmentsPerMonth[key] || 0) + 1;
   });
-/*   const barLabels = Object.keys(assignmentsPerMonth).sort();
-  const barData = Object.values(assignmentsPerMonth); */
+
 
   const replacementsPerType = {};
   filteredReplacements.forEach((r) => {
     const key = r.type || "Desconocido";
     replacementsPerType[key] = (replacementsPerType[key] || 0) + 1;
   });
-  const pieLabels = Object.keys(replacementsPerType);
+  
+  const pieLabels = Object.keys(replacementsPerType).map(key => formatAssignmentType(key));
+  
   const pieData = Object.values(replacementsPerType);
 
   const participantCounts = {};
@@ -170,6 +172,33 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     ? replacementsReceivedSorted
     : replacementsReceivedSorted.slice(0, 5);
 
+  const activeParticipantsPercentage = participants.length > 0 
+    ? ((activeParticipants.length / participants.length) * 100).toFixed(1) + "%"
+    : "0%";
+
+  const pieOptions = {
+      plugins: {
+          tooltip: {
+              callbacks: {
+                  label: function (context) {
+                      const label = context.label || '';
+                      if (label) {
+                          const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
+                          const currentValue = context.raw;
+                          const percentage = ((currentValue / total) * 100).toFixed(1);
+                          return `${label}: ${currentValue} (${percentage}%)`;
+                      }
+                      return label;
+                  }
+              }
+          }
+      }
+  };
+
+  const assignmentsPerReplacement = filteredReplacements.length > 0 
+    ? (filteredAssignments.length / filteredReplacements.length).toFixed(1)
+    : "N/A";
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
@@ -190,7 +219,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         {/* Month filter dropdown */}
         <div className="mt-4">
           <label htmlFor="monthFilter" className="mr-2 text-gray-700 dark:text-gray-300">
-           Mostrar:
+            Mostrar:
           </label>
           <select
             id="monthFilter"
@@ -208,7 +237,20 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {/* Nuevo orden de las tarjetas */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <p className="text-sm text-gray-500">Participantes activos / total</p>
+          <p className="text-3xl font-bold text-indigo-600">
+            {activeParticipants.length}/{participants.length}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <p className="text-sm text-gray-500">% de participantes activos</p>
+          <p className="text-3xl font-bold text-indigo-600">
+            {activeParticipantsPercentage}
+          </p>
+        </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <p className="text-sm text-gray-500">Asignaciones creadas</p>
           <p className="text-3xl font-bold text-indigo-600">
@@ -230,9 +272,9 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <p className="text-sm text-gray-500">Participantes activos / total</p>
+          <p className="text-sm text-gray-500">Asignaciones por reemplazo</p>
           <p className="text-3xl font-bold text-indigo-600">
-            {activeParticipants.length}/{participants.length}
+            {assignmentsPerReplacement}
           </p>
         </div>
       </div>
@@ -244,27 +286,27 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
           </h3>
           {participantsToShow.length === 0 ? (
             <p className="text-gray-500">No hay datos.</p>
-        ) : (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {participantsToShow.map(([name, count]) => (
-              <li key={name} className="flex justify-between py-2">
-                <span className="text-gray-800 dark:text-gray-100">{name}</span>
-                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
-                  {count}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {topParticipantsFull.length > 5 && (
-          <button
-            onClick={() => setShowAllParticipants(!showAllParticipants)}
-            className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
-          >
-            {showAllParticipants ? "Mostrar menos" : "Mostrar más"}
-          </button>
-        )}
-      </div>
+          ) : (
+            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+              {participantsToShow.map(([name, count]) => (
+                <li key={name} className="flex justify-between py-2">
+                  <span className="text-gray-800 dark:text-gray-100">{name}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                    {count}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {topParticipantsFull.length > 5 && (
+            <button
+              onClick={() => setShowAllParticipants(!showAllParticipants)}
+              className="mt-2 text-indigo-600 dark:text-indigo-400 font-semibold underline"
+            >
+              {showAllParticipants ? "Mostrar menos" : "Mostrar más"}
+            </button>
+          )}
+        </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">Reemplazos por Tipo</h3>
           {pieLabels.length === 0 ? (
@@ -289,13 +331,12 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
                     }
                   ]
                 }}
+                options={pieOptions}
               />
             </div>
           )}
         </div>
       </div>
-
-      
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
@@ -343,4 +384,3 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
 };
 
 export default DashboardPage;
-
