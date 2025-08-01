@@ -8,6 +8,7 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
+  getDocs,
 } from "firebase/firestore";
 import {
   UserPlus,
@@ -17,12 +18,13 @@ import {
   Search,
   Pencil,
   Trash2,
+  History
 } from "lucide-react";
-import { formatAssignmentType } from "../utils/helpers"; // Make sure this path is correct
+import { formatAssignmentType } from "../utils/helpers"; // Ajustá la ruta si es necesario
+import ParticipantHistory from "../components/ParticipantHistory"; // Asumo que está en components
 
 const appId = "default-app-id";
 
-// Your comprehensive list of assignment types
 const ASSIGNMENT_TYPES = [
   "presidencia",
   "oracion-inicial",
@@ -44,15 +46,21 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   const [newName, setNewName] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [enabledAssignments, setEnabledAssignments] = useState([]);
-  const [excludedFromTypes, setExcludedFromTypes] = useState([]); // Stores which types the participant is excluded from
+  const [excludedFromTypes, setExcludedFromTypes] = useState([]);
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [participantToDelete, setParticipantToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [reminder, setReminder] = React.useState({
+  const [reminder, setReminder] = useState({
     enabled: false,
     message: "",
   });
+
+  // Estados para historial modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedParticipantForHistory, setSelectedParticipantForHistory] = useState(null);
+  const [participantHistory, setParticipantHistory] = useState([]);
+  const [replacements, setReplacements] = useState([]);
 
   useEffect(() => {
     if (!db || !userId) return;
@@ -116,7 +124,7 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       setNewName("");
       setNewNotes("");
       setEnabledAssignments([]);
-      setExcludedFromTypes([]); 
+      setExcludedFromTypes([]);
       setReminder({ enabled: false, message: "" });
     } catch (error) {
       console.error("Error saving participant:", error);
@@ -129,7 +137,6 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     setNewName(p.name);
     setNewNotes(p.notes || "");
     setEnabledAssignments(p.enabledAssignments || []);
-    // Load exclusion status, defaulting to empty array if not present in Firestore
     setExcludedFromTypes(p.excludedFromAssignmentTypes || []);
     setReminder(p.reminder || { enabled: false, message: "" });
     window.scrollTo({ top: 200, behavior: "smooth" });
@@ -167,7 +174,6 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
     }
   };
 
-  // Function to toggle exclusion for a specific type
   const toggleExclusionForType = (typeToExclude) => {
     if (excludedFromTypes.includes(typeToExclude)) {
       setExcludedFromTypes(
@@ -181,6 +187,40 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
   const filteredParticipants = participants.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Nueva función para abrir modal historial y cargar datos
+  const handleOpenHistory = async (participant) => {
+    setSelectedParticipantForHistory(participant);
+    setShowHistoryModal(true);
+
+    try {
+      // Obtener asignaciones
+      const assignmentsCol = collection(db, `artifacts/${appId}/public/data/assignments`);
+      const assignmentsSnapshot = await getDocs(assignmentsCol);
+      const assignmentsData = assignmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const filteredHistory = assignmentsData
+  .filter(a => a.participantId === participant.id || a.secondParticipantId === participant.id)
+  .sort((a, b) => {
+    // Convertir a milisegundos para ordenar bien
+    const dateA = a.date?.seconds ? a.date.seconds * 1000 : new Date(a.date).getTime();
+    const dateB = b.date?.seconds ? b.date.seconds * 1000 : new Date(b.date).getTime();
+    return dateB - dateA; // Descendente
+  });
+
+      setParticipantHistory(filteredHistory);
+
+      // Obtener reemplazos
+      const replacementsCol = collection(db, `artifacts/${appId}/public/data/replacements`);
+      const replacementsSnapshot = await getDocs(replacementsCol);
+      const replacementsData = replacementsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      setReplacements(replacementsData);
+    } catch (error) {
+      console.error("Error loading history:", error);
+      showMessage(`Error al cargar historial: ${error.message}`);
+    }
+  };
 
   return (
     <div className="space-y-8 mb-20">
@@ -257,13 +297,11 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
             ))}
           </div>
         </div>
-        {/* UPDATED SECTION: Exclusion from *all* assignment types */}
         <div>
           <p className="text-gray-400 text-sm mb-2 mt-4">
             Excluir de sugerencias para:
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {/* Map over all ASSIGNMENT_TYPES for exclusion checkboxes */}
             {ASSIGNMENT_TYPES.map((type) => (
               <label
                 key={`exclude-${type}`}
@@ -285,7 +323,6 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
             ))}
           </div>
         </div>
-        {/* END UPDATED SECTION */}
         <div className="flex justify-end gap-2">
           {editingParticipant && (
             <button
@@ -336,7 +373,6 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                   {p.name}
                 </p>
                 {p.notes && <p className="text-sm text-gray-400">{p.notes}</p>}
-                {/* Display excluded types for the participant */}
                 {p.excludedFromAssignmentTypes?.length > 0 && (
                   <p className="text-xs text-red-300 mt-1">
                     Excluido de:{" "}
@@ -352,6 +388,14 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 )}
               </div>
               <div className="flex gap-2">
+                {/* Botón nuevo para abrir historial */}
+                <button
+                  onClick={() => handleOpenHistory(p)}
+                  className="p-2 bg-blue-600 hover:bg-blue-800 text-white rounded flex items-center gap-1"
+                  title="Ver historial"
+                >
+                  <History size={18} />
+                </button>
                 <button
                   onClick={() => handleEdit(p)}
                   className="p-2 bg-orange-400 hover:bg-orange-700 text-white rounded flex items-center gap-1"
@@ -359,6 +403,8 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
                 >
                   <Pencil size={18} />
                 </button>
+
+
                 <button
                   onClick={() => handleDelete(p)}
                   className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded flex items-center gap-1"
@@ -379,6 +425,34 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
       <p className="text-sm text-gray-400 mt-2">
         Total de participantes: {filteredParticipants.length}
       </p>
+
+      {/* Modal historial */}
+      {showHistoryModal && selectedParticipantForHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
+          <div className="bg-gray-900 text-white rounded-lg max-w-lg w-full p-6 relative max-h-[80vh] overflow-auto">
+            <h3 className="text-xl font-bold mb-4">
+              Historial de {selectedParticipantForHistory.name}
+            </h3>
+
+            <ParticipantHistory
+              participantHistory={participantHistory}
+              selectedParticipantId={selectedParticipantForHistory.id}
+              participants={participants}
+              replacements={replacements}
+              title="Historial de asignaciones de"
+            />
+
+            <button
+              onClick={() => setShowHistoryModal(false)}
+              className="absolute top-3 right-3 text-gray-300 hover:text-white text-2xl font-bold"
+              aria-label="Cerrar"
+              title="Cerrar"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
 
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
@@ -408,3 +482,4 @@ const ParticipantsPage = ({ db, userId, showMessage }) => {
 };
 
 export default ParticipantsPage;
+
