@@ -102,8 +102,13 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
 
   const normalizeName = (name) =>
     name.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    
+  // Filter out excluded participants from the total list
+  const filteredParticipants = participants.filter(
+    (p) => !EXCLUDED_PARTICIPANTS.includes(p.name)
+  );
 
-  // Modified active participants logic
+  // Modified active participants logic now uses the filtered list
   const assignedParticipantNames = new Set();
   const replacedParticipantNames = new Set(filteredReplacements.map(r => normalizeName(r.oldParticipantName)));
   filteredAssignments.forEach((a) => {
@@ -115,7 +120,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     }
   });
 
-  const activeParticipants = participants.filter((p) =>
+  const activeParticipants = filteredParticipants.filter((p) =>
     assignedParticipantNames.has(normalizeName(p.name))
   );
 
@@ -172,8 +177,9 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     ? replacementsReceivedSorted
     : replacementsReceivedSorted.slice(0, 5);
 
-  const activeParticipantsPercentage = participants.length > 0 
-    ? ((activeParticipants.length / participants.length) * 100).toFixed(1) + "%"
+  // Now using the length of the filtered list
+  const activeParticipantsPercentage = filteredParticipants.length > 0 
+    ? ((activeParticipants.length / filteredParticipants.length) * 100).toFixed(1) + "%"
     : "0%";
 
   const pieOptions = {
@@ -242,7 +248,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <p className="text-sm text-gray-500">Participantes activos / total</p>
           <p className="text-3xl font-bold text-indigo-600">
-            {activeParticipants.length}/{participants.length}
+            {activeParticipants.length}/{filteredParticipants.length}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">

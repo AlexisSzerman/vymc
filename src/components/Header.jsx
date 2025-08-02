@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { LogIn, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { LogIn, LogOut, CircleUser, Menu, X } from "lucide-react";
 
 const Header = ({ setCurrentPage, isMenuOpen, toggleMenu }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -48,7 +48,7 @@ const Header = ({ setCurrentPage, isMenuOpen, toggleMenu }) => {
 
         <h1
           onClick={() => setCurrentPage("public")}
-          className="text-lg font-bold text-indigo-700 dark:text-indigo-300 cursor-pointer flex items-center gap-2"
+          className="text-lg md:text-xl font-bold text-indigo-700 dark:text-indigo-300 cursor-pointer flex items-center gap-2"
         >
           <img src="icons/logo-vymc.svg" alt="Logo" className="mx-auto h-12" />
           Gestor Reunion Vida y Ministerio Cristianos
@@ -57,9 +57,12 @@ const Header = ({ setCurrentPage, isMenuOpen, toggleMenu }) => {
 
       <div className="flex items-center gap-2">
         {isAuthenticated && (
-          <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline truncate max-w-xs">
-            {userEmail}
-          </span>
+          <>
+            <CircleUser className="w-6 h-6 text-indigo-600 dark:text-indigo-300 hidden sm:inline truncate max-w-xs" />
+            <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:inline truncate max-w-xs">
+              {userEmail}
+            </span>
+          </>
         )}
 
         {isAuthenticated ? (
