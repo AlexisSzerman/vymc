@@ -25,10 +25,7 @@ ChartJS.register(
 const appId = "default-app-id";
 
 const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "Guillermo Figueiras"];
-const EXCLUDED_ASSIGNMENT_TYPES = [
-  "cancion",
-  "visita",
-];
+const EXCLUDED_ASSIGNMENT_TYPES = ["cancion", "visita"];
 
 const DashboardPage = ({ db, showMessage, authUser }) => {
   const [assignments, setAssignments] = useState([]);
@@ -38,7 +35,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const [showAllParticipants, setShowAllParticipants] = useState(false);
   const [showAllReplacementsMade, setShowAllReplacementsMade] = useState(false);
   const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(false);
-  // New state for month filter
   const [selectedMonth, setSelectedMonth] = useState("all");
 
   useEffect(() => {
@@ -77,7 +73,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     fetchData();
   }, [db, showMessage, authUser]);
 
-  // Filter assignments and replacements by selected month
+  // Filtro de asignaciones y reemplazos para el resto de métricas
   const filteredAssignments = assignments.filter(
     (a) =>
       !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
@@ -93,22 +89,21 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
       (selectedMonth === "all" || (r.date && r.date.startsWith(selectedMonth)))
   );
 
-  // Get unique months for the dropdown
+  // Meses disponibles para el selector
   const availableMonths = [...new Set(
     assignments
       .filter((a) => a.date)
-      .map((a) => a.date.slice(0, 7)) // Extract YYYY-MM
+      .map((a) => a.date.slice(0, 7))
   )].sort();
 
+  // Participantes activos
   const normalizeName = (name) =>
-    name.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-    
-  // Filter out excluded participants from the total list
+    name?.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") || "";
+
   const filteredParticipants = participants.filter(
     (p) => !EXCLUDED_PARTICIPANTS.includes(p.name)
   );
 
-  // Modified active participants logic now uses the filtered list
   const assignedParticipantNames = new Set();
   const replacedParticipantNames = new Set(filteredReplacements.map(r => normalizeName(r.oldParticipantName)));
   filteredAssignments.forEach((a) => {
@@ -124,34 +119,42 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     assignedParticipantNames.has(normalizeName(p.name))
   );
 
-  const assignmentsPerMonth = {};
-  filteredAssignments.forEach((a) => {
-    if (!a.date) return;
-    const [year, month] = a.date.split("-");
-    const key = `${year}-${month}`;
-    assignmentsPerMonth[key] = (assignmentsPerMonth[key] || 0) + 1;
-  });
-
-
+  // Datos para el gráfico de reemplazos por tipo
   const replacementsPerType = {};
   filteredReplacements.forEach((r) => {
     const key = r.type || "Desconocido";
     replacementsPerType[key] = (replacementsPerType[key] || 0) + 1;
   });
-  
   const pieLabels = Object.keys(replacementsPerType).map(key => formatAssignmentType(key));
-  
   const pieData = Object.values(replacementsPerType);
 
+  // 🔹 Nuevo cálculo de Top Asignados (solo mes y exclusiones, sin null/undefined/vacíos)
   const participantCounts = {};
-  filteredAssignments.forEach((a) => {
-    if (a.participantName && !replacedParticipantNames.has(normalizeName(a.participantName))) {
-      participantCounts[a.participantName] = (participantCounts[a.participantName] || 0) + 1;
+  assignments.forEach((a) => {
+    if (
+      a.date &&
+      (selectedMonth === "all" || a.date.startsWith(selectedMonth)) &&
+      !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
+      a.participantName &&
+      a.participantName.trim() !== "" &&
+      !EXCLUDED_PARTICIPANTS.includes(a.participantName)
+    ) {
+      participantCounts[a.participantName] =
+        (participantCounts[a.participantName] || 0) + 1;
     }
-    if (a.secondParticipantName && !replacedParticipantNames.has(normalizeName(a.secondParticipantName))) {
-      participantCounts[a.secondParticipantName] = (participantCounts[a.secondParticipantName] || 0) + 1;
+    if (
+      a.date &&
+      (selectedMonth === "all" || a.date.startsWith(selectedMonth)) &&
+      !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
+      a.secondParticipantName &&
+      a.secondParticipantName.trim() !== "" &&
+      !EXCLUDED_PARTICIPANTS.includes(a.secondParticipantName)
+    ) {
+      participantCounts[a.secondParticipantName] =
+        (participantCounts[a.secondParticipantName] || 0) + 1;
     }
   });
+
   const topParticipantsFull = Object.entries(participantCounts)
     .sort((a, b) => b[1] - a[1]);
 
@@ -159,6 +162,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     ? topParticipantsFull
     : topParticipantsFull.slice(0, 5);
 
+  // Reemplazos hechos y recibidos
   const replacementsMade = {};
   const replacementsReceived = {};
   filteredReplacements.forEach((r) => {
@@ -177,28 +181,28 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     ? replacementsReceivedSorted
     : replacementsReceivedSorted.slice(0, 5);
 
-  // Now using the length of the filtered list
+  // % de participantes activos
   const activeParticipantsPercentage = filteredParticipants.length > 0 
     ? ((activeParticipants.length / filteredParticipants.length) * 100).toFixed(1) + "%"
     : "0%";
 
   const pieOptions = {
-      plugins: {
-          tooltip: {
-              callbacks: {
-                  label: function (context) {
-                      const label = context.label || '';
-                      if (label) {
-                          const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
-                          const currentValue = context.raw;
-                          const percentage = ((currentValue / total) * 100).toFixed(1);
-                          return `${label}: ${currentValue} (${percentage}%)`;
-                      }
-                      return label;
-                  }
-              }
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.label || '';
+            if (label) {
+              const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
+              const currentValue = context.raw;
+              const percentage = ((currentValue / total) * 100).toFixed(1);
+              return `${label}: ${currentValue} (${percentage}%)`;
+            }
+            return label;
           }
+        }
       }
+    }
   };
 
   const assignmentsPerReplacement = filteredReplacements.length > 0 
@@ -222,7 +226,6 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
           <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
         </h2>
-        {/* Month filter dropdown */}
         <div className="mt-4">
           <label htmlFor="monthFilter" className="mr-2 text-gray-700 dark:text-gray-300">
             Mostrar:
@@ -243,8 +246,8 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         </div>
       </div>
 
+      {/* Tarjetas métricas */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        {/* Nuevo orden de las tarjetas */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <p className="text-sm text-gray-500">Participantes activos / total</p>
           <p className="text-3xl font-bold text-indigo-600">
@@ -285,6 +288,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         </div>
       </div>
 
+      {/* Top asignados y gráfico */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">
@@ -344,6 +348,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         </div>
       </div>
 
+      {/* Top reemplazos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-6">
           <h3 className="text-xl font-semibold mb-4">Top Reemplazos</h3>
