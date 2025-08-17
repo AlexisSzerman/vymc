@@ -9,7 +9,7 @@ import html2canvas from "html2canvas";
 
 const appId = "default-app-id";
 
-const excludedParticipants = ["A Confirmar", "Presidente"];
+const excludedParticipants = ["A Confirmar", "Presidente", "José Gularte"];
 const excludedTypes = ["cancion"];
 
 const ExportAssignmentsPage = ({ db }) => {

@@ -24,7 +24,7 @@ ChartJS.register(
 
 const appId = "default-app-id";
 
-const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "Guillermo Figueiras"];
+const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "José Gularte"];
 const EXCLUDED_ASSIGNMENT_TYPES = ["cancion", "visita"];
 
 const DashboardPage = ({ db, showMessage, authUser }) => {
