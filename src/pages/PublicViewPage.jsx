@@ -10,6 +10,61 @@ import Loader from "../components/Loader";
 
 const appId = "default-app-id";
 
+// Función para detectar URLs y convertirlas en links (misma que en ReminderManager)
+const formatTextWithLinks = (text) => {
+  if (!text) return '';
+  
+  // Regex para detectar URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  
+  // Reemplazar URLs con links clickeables
+  const parts = text.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
+// Función para procesar texto con formato básico (misma que en ReminderManager)
+const processFormattedText = (text) => {
+  if (!text) return '';
+  
+  let processedText = text;
+  
+  // Procesar negritas **texto**
+  processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Procesar cursivas *texto*
+  processedText = processedText.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+  
+  return processedText;
+};
+
+// Componente para renderizar texto con formato (mismo que en ReminderManager)
+const FormattedText = ({ text, className = "" }) => {
+  const formattedText = processFormattedText(text);
+  const withLinks = formatTextWithLinks(formattedText);
+  
+  if (typeof withLinks === 'string') {
+    return <span className={className} dangerouslySetInnerHTML={{ __html: withLinks }} />;
+  }
+  
+  return <span className={className}>{withLinks}</span>;
+};
+
 const PublicViewPage = ({ db, showMessage }) => {
   const [assignments, setAssignments] = useState([]);
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
@@ -140,9 +195,12 @@ const PublicViewPage = ({ db, showMessage }) => {
               <span className={`${getIconClass(reminderType)} text-4xl`} />
             </div>
           )}
-          <p className="text-gray-800 dark:text-gray-200 mt-2">
-            {publicReminderMessage}
-          </p>
+          <div className="text-gray-800 dark:text-gray-200 mt-2">
+            <FormattedText 
+              text={publicReminderMessage} 
+              className="text-gray-800 dark:text-gray-200"
+            />
+          </div>
         </div>
       )}
 

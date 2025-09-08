@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   collection,
   doc,
@@ -17,6 +17,7 @@ const ReminderManager = ({ db, showMessage }) => {
   const [reminderType, setReminderType] = useState('');
   const [allReminders, setAllReminders] = useState([]);
   const [editingId, setEditingId] = useState(null);
+    const textareaRef = useRef(null);
 
   useEffect(() => {
     if (!db) return;
@@ -60,12 +61,18 @@ const ReminderManager = ({ db, showMessage }) => {
     }
   };
 
-  const handleEdit = (reminder) => {
-    setReminderDate(reminder.id);
-    setReminderText(reminder.message);
-    setReminderType(reminder.type || '');
-    setEditingId(reminder.id);
-  };
+const handleEdit = (reminder) => {
+  setReminderDate(reminder.id);
+  setReminderText(reminder.message);
+  setReminderType(reminder.type || '');
+  setEditingId(reminder.id);
+
+  // Scroll hacia el textarea
+  setTimeout(() => {
+    textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    textareaRef.current?.focus();
+  }, 100);
+};
 
   const handleDelete = async (reminder) => {
     try {
@@ -109,16 +116,16 @@ const ReminderManager = ({ db, showMessage }) => {
             <option value="Conmemoración">Conmemoración</option>
           </select>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-gray-300">Mensaje</label>
-          <textarea
-            value={reminderText}
-            onChange={(e) => setReminderText(e.target.value)}
-            rows="2"
-            placeholder="Mensaje del recordatorio"
-            className="w-full p-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
+        <div className="flex flex-col gap-1 sm:col-span-3">
+  <label className="text-sm text-gray-300">Mensaje</label>
+  <textarea
+    value={reminderText}
+    onChange={(e) => setReminderText(e.target.value)}
+    placeholder="Mensaje del recordatorio"
+    className="w-full p-4 rounded-xl border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y min-h-[150px] transition-all"
+    ref={textareaRef}
+  />
+</div>
       </div>
 
       <div className="flex justify-end gap-2">
