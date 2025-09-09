@@ -65,6 +65,26 @@ const FormattedText = ({ text, className = "" }) => {
   return <span className={className}>{withLinks}</span>;
 };
 
+// Nueva función para formatear la hora
+const formatTime = (timeString) => {
+  if (!timeString) return null;
+  
+  try {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const minute = parseInt(minutes);
+    
+    // Formatear en formato de 12 horas (AM/PM)
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const displayMinute = minute.toString().padStart(2, '0');
+    
+    return `${displayHour}:${displayMinute} ${period}`;
+  } catch {
+    return timeString; // Retornar el string original si hay error
+  }
+};
+
 const PublicViewPage = ({ db, showMessage }) => {
   const [assignments, setAssignments] = useState([]);
   const [publicReminderMessage, setPublicReminderMessage] = useState("");
@@ -294,8 +314,13 @@ const PublicViewPage = ({ db, showMessage }) => {
                       {banner}
                       <li className="py-4">
                         <p className="text-lg text-gray-700 dark:text-gray-300">
-                          <span className="text-lg text-gray-900 dark:text-white font-bold inline-flex items-center gap-1 leading-tight">
-
+                          <span className="text-lg text-gray-900 dark:text-white font-bold inline-flex items-center gap-2 leading-tight">
+                            {/* Horario antes del tipo */}
+                            {assignment.time && (
+                              <span className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm font-medium">
+                                {formatTime(assignment.time)}
+                              </span>
+                            )}
                             {assignment.type === "cancion" && (
                               <span
                                 className="jw-icon jw-icon-133 text-xl align-middle leading-none"

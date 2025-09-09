@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 
-
-const useAssignmentForm = (db, userId, appId, showMessage, allAssignments, participants, showConfirm) => {
+const useAssignmentForm = (
+  db, 
+  userId, 
+  appId, 
+  showMessage, 
+  allAssignments, 
+  participants, 
+  showConfirm,
+  assignmentTime,        // ← NUEVO PARÁMETRO
+  setAssignmentTime      // ← NUEVO PARÁMETRO
+) => {
   const [meetingDate, setMeetingDate] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [assignmentTitle, setAssignmentTitle] = useState("");
@@ -18,6 +27,7 @@ const useAssignmentForm = (db, userId, appId, showMessage, allAssignments, parti
     setEditingAssignment(null);
     setSelectedType("");
     setAssignmentTitle("");
+    setAssignmentTime("");          // ← AGREGAR ESTA LÍNEA
     setAssignmentOrder("");
     setSelectedParticipantId("");
     setSecondSelectedParticipantId("");
@@ -29,6 +39,7 @@ const useAssignmentForm = (db, userId, appId, showMessage, allAssignments, parti
     setMeetingDate(assignment.date);
     setSelectedType(assignment.type);
     setAssignmentTitle(assignment.title);
+    setAssignmentTime(assignment.time || "");  // ← AGREGAR ESTA LÍNEA
     setAssignmentOrder(assignment.orden ?? "");
     setSelectedParticipantId(assignment.participantId || "");
     setSecondSelectedParticipantId(assignment.secondParticipantId || "");
@@ -89,6 +100,7 @@ const useAssignmentForm = (db, userId, appId, showMessage, allAssignments, parti
       date: meetingDate,
       type: selectedType,
       title: assignmentTitle.trim(),
+      time: assignmentTime || null,           // ← AGREGAR ESTA LÍNEA
       orden: parseInt(assignmentOrder, 10) || 99, // Orden por defecto si no se especifica
       participantId: selectedParticipantId || null,
       participantName:
@@ -208,4 +220,4 @@ const useAssignmentForm = (db, userId, appId, showMessage, allAssignments, parti
   };
 };
 
-export default useAssignmentForm;
+export default useAssignmentForm

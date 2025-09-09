@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { ClipboardList } from "lucide-react";
 import ConfirmDialog from "../components/ConfirmDialog";
 import AssignmentForm from "../components/AssignmentForm";
@@ -11,13 +11,15 @@ import useAssignmentSuggestions from "../hooks/useAssignmentSuggestions";
 import useConfirmDialog from "../hooks/useConfirmDialog";
 import { deleteDoc, doc } from "firebase/firestore";
 
-
 const appId = "default-app-id";
 
 const AssignmentsPage = ({ db, userId, showMessage }) => {
-
   const { participants, allAssignments, replacements } = useAssignmentsData(db, userId, appId);
   const { confirmDialog, showConfirm, handleConfirmClose } = useConfirmDialog();
+  
+  // Estado para el tiempo de asignación
+  const [assignmentTime, setAssignmentTime] = useState('');
+
   const {
     meetingDate,
     setMeetingDate,
@@ -35,7 +37,17 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     handleSave,
     resetForm,
     handleEdit,
-  } = useAssignmentForm(db, userId, appId, showMessage, allAssignments, participants, showConfirm);
+  } = useAssignmentForm(
+    db, 
+    userId, 
+    appId, 
+    showMessage, 
+    allAssignments, 
+    participants, 
+    showConfirm,
+    assignmentTime,        // ← AGREGAR ESTA LÍNEA
+    setAssignmentTime      // ← AGREGAR ESTA LÍNEA
+  );
 
   const {
     filterDate,
@@ -108,6 +120,8 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           setSelectedType={setSelectedType}
           assignmentTitle={assignmentTitle}
           setAssignmentTitle={setAssignmentTitle}
+          assignmentTime={assignmentTime}
+          setAssignmentTime={setAssignmentTime}
           selectedParticipantId={selectedParticipantId}
           setSelectedParticipantId={setSelectedParticipantId}
           secondSelectedParticipantId={secondSelectedParticipantId}

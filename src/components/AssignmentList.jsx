@@ -4,6 +4,26 @@ import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 
 const appId = "default-app-id";
 
+// Función para formatear la hora
+const formatTime = (timeString) => {
+  if (!timeString) return null;
+  
+  try {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const minute = parseInt(minutes);
+    
+    // Formatear en formato de 12 horas (AM/PM)
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const displayMinute = minute.toString().padStart(2, '0');
+    
+    return `${displayHour}:${displayMinute} ${period}`;
+  } catch {
+    return timeString;
+  }
+};
+
 const AssignmentList = ({
   currentAssignments,
   handleEdit,
@@ -80,9 +100,17 @@ const AssignmentList = ({
             className="p-4 border border-gray-700 bg-gray-800 rounded flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 hover:bg-gray-700 transition"
           >
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-200 truncate">
-                {formatDateAr(a.date)} - {formatAssignmentType(a.type)}
-              </p>
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <p className="font-semibold text-gray-200 truncate">
+                  {formatDateAr(a.date)} - {formatAssignmentType(a.type)}
+                </p>
+                {/* Mostrar horario si existe */}
+                {a.time && (
+                  <span className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs font-medium">
+                    {formatTime(a.time)}
+                  </span>
+                )}
+              </div>
               <p className="text-gray-300 break-words max-w-full">{a.title}</p>
               <p className="text-gray-300 truncate">
                 {a.participantName}

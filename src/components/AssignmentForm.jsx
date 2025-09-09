@@ -7,6 +7,8 @@ const AssignmentForm = ({
   setSelectedType,
   assignmentTitle,
   setAssignmentTitle,
+  assignmentTime, // Nueva prop
+  setAssignmentTime, // Nueva prop
   selectedParticipantId,
   setSelectedParticipantId,
   secondSelectedParticipantId,
@@ -85,6 +87,17 @@ const AssignmentForm = ({
             className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
             value={assignmentTitle}
             onChange={(e) => setAssignmentTitle(e.target.value)}
+          />
+        </div>
+
+        {/* Horario de la Asignación - NUEVO CAMPO */}
+        <div>
+          <label className="block text-gray-300 mb-1">Horario</label>
+          <input
+            type="time"
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+            value={assignmentTime || ''}
+            onChange={(e) => setAssignmentTime(e.target.value)}
           />
         </div>
 
