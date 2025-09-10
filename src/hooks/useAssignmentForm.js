@@ -55,7 +55,7 @@ const useAssignmentForm = (
       return showMessage("Primero debes seleccionar una fecha de reunión.");
     }
 
-    const isAssembly = ["asamblea-circuito", "asamblea-regional", "cancion"].includes(selectedType);
+    const isAssembly = ["asamblea-circuito", "asamblea-regional", "cancion", "conmemoracion"].includes(selectedType);
     if (!isAssembly && !selectedParticipantId) {
       return showMessage("Completa los campos requeridos.");
     }

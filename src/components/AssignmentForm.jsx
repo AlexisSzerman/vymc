@@ -31,6 +31,7 @@ const AssignmentForm = ({
     "asamblea-circuito",
     "asamblea-regional",
     "cancion",
+    "conmemoracion",
   ].includes(selectedType);
   const selectedParticipant = participants.find(
     (p) => p.id === selectedParticipantId
@@ -76,6 +77,7 @@ const AssignmentForm = ({
             <option value="asamblea-circuito">Asamblea Circuito</option>
             <option value="asamblea-regional">Asamblea Regional</option>
             <option value="visita">Visita Superintendente y esposa</option>
+            <option value="conmemoracion">Conmemoración</option>
           </select>
         </div>
 
@@ -203,7 +205,7 @@ const AssignmentForm = ({
       {/* Advertencia de dupla repetida */}
       {duplaRepetida && (
         <div className="mt-4 bg-red-900 border border-red-700 p-3 rounded text-red-200">
-          ¡Advertencia! Esta dupla ya participó junta el{" "}
+          ¡Advertencia! Esta dupla ya participó el{" "}
           {formatDateAr(duplaRepetida.date)}.
         </div>
       )}

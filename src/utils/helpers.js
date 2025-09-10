@@ -67,6 +67,8 @@ export const formatAssignmentType = (type) => {
       return "Asamblea Regional";
     case "visita":
       return "Visita del Superintendente y su Esposa";
+    case "conmemoracion":
+      return "Conmemoración";
     default:
       // Si no está definido, devolver con capitalización genérica
       return type
