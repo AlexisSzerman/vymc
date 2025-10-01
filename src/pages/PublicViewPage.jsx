@@ -313,31 +313,38 @@ const PublicViewPage = ({ db, showMessage }) => {
                     <React.Fragment key={assignment.id}>
                       {banner}
                       <li className="py-4">
-                        <p className="text-lg text-gray-700 dark:text-gray-300">
-                          <span className="text-lg text-gray-900 dark:text-white font-bold inline-flex items-center gap-2 leading-tight">
-                            {/* Horario antes del tipo */}
+                        <div className="text-lg text-gray-700 dark:text-gray-300">
+                          <div className="text-lg text-gray-900 dark:text-white font-bold">
+                            {/* Horario: en su propia línea en móvil, inline en desktop */}
                             {assignment.time && (
-                              <span className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm font-medium">
-                                {formatTime(assignment.time)}
+                              <>
+                                <span className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm font-medium sm:mr-2">
+                                  {formatTime(assignment.time)}
+                                </span>
+                                <br className="sm:hidden" />
+                              </>
+                            )}
+                            <span className="inline-flex items-center gap-2 leading-tight">
+                              {assignment.type === "cancion" && (
+                                <span
+                                  className="jw-icon jw-icon-133 text-xl align-middle leading-none"
+                                  aria-label="Icono Canción"
+                                />
+                              )}
+                              <span>
+                                {formatAssignmentType(assignment.type)}
                               </span>
-                            )}
-                            {assignment.type === "cancion" && (
-                              <span
-                                className="jw-icon jw-icon-133 text-xl align-middle leading-none"
-                                aria-label="Icono Canción"
-                              />
-                            )}
-                            <span className="whitespace-nowrap">
-                              {formatAssignmentType(assignment.type)}
                             </span>
-                          </span>
+                            {assignment.title && assignment.type !== "cancion" && (
+                              <span>: </span>
+                            )}
+                          </div>
                           {assignment.title && (
-                            <>
-                              {assignment.type !== "cancion" && ":"}{" "}
+                            <span className="text-lg text-gray-700 dark:text-gray-300">
                               {assignment.title}
-                            </>
+                            </span>
                           )}
-                        </p>
+                        </div>
 
                         <p className="text-md text-indigo-600 dark:text-indigo-400 font-bold">
                           {assignment.participantName && (
