@@ -27,6 +27,11 @@ const appId = "default-app-id";
 const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "José Gularte"];
 const EXCLUDED_ASSIGNMENT_TYPES = ["cancion", "visita"];
 
+const MONTH_NAMES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
 const DashboardPage = ({ db, showMessage, authUser }) => {
   const [assignments, setAssignments] = useState([]);
   const [replacements, setReplacements] = useState([]);
@@ -35,7 +40,10 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
   const [showAllParticipants, setShowAllParticipants] = useState(false);
   const [showAllReplacementsMade, setShowAllReplacementsMade] = useState(false);
   const [showAllReplacementsReceived, setShowAllReplacementsReceived] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState("all");
+
+  // Nuevo sistema de filtro
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedMonths, setSelectedMonths] = useState(new Set());
 
   useEffect(() => {
     if (!db || !authUser) return;
@@ -73,67 +81,74 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     fetchData();
   }, [db, showMessage, authUser]);
 
+  // Años disponibles
+  const availableYears = [...new Set(
+    assignments.filter((a) => a.date).map((a) => a.date.slice(0, 4))
+  )].sort();
+
+  // Meses disponibles para el año seleccionado
+  const availableMonthsForYear = selectedYear === "all"
+    ? []
+    : [...new Set(
+        assignments
+          .filter((a) => a.date && a.date.startsWith(selectedYear))
+          .map((a) => parseInt(a.date.slice(5, 7)))
+      )].sort((a, b) => a - b);
+
+  // Lógica de filtro de fecha
+  const matchesDateFilter = (date) => {
+    if (!date) return false;
+    if (selectedYear === "all") return true;
+    const [y, m] = date.split("-");
+    if (y !== selectedYear) return false;
+    if (selectedMonths.size === 0) return true;
+    return selectedMonths.has(parseInt(m));
+  };
+
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+    setSelectedMonths(new Set());
+  };
+
+  const handleMonthToggle = (month) => {
+    setSelectedMonths((prev) => {
+      const next = new Set(prev);
+      if (next.has(month)) {
+        next.delete(month);
+      } else {
+        next.add(month);
+      }
+      return next;
+    });
+  };
+
   // Filtro de asignaciones y reemplazos para el resto de métricas
   const filteredAssignments = assignments.filter(
     (a) =>
       !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
       !EXCLUDED_PARTICIPANTS.includes(a.participantName) &&
       !EXCLUDED_PARTICIPANTS.includes(a.secondParticipantName) &&
-      (selectedMonth === "all" || (a.date && a.date.startsWith(selectedMonth)))
+      matchesDateFilter(a.date)
   );
 
   const filteredReplacements = replacements.filter(
     (r) =>
       !EXCLUDED_PARTICIPANTS.includes(r.oldParticipantName) &&
       !EXCLUDED_PARTICIPANTS.includes(r.newParticipantName) &&
-      (selectedMonth === "all" || (r.date && r.date.startsWith(selectedMonth)))
+      matchesDateFilter(r.date)
   );
 
-  // Meses disponibles para el selector
-  const availableMonths = [...new Set(
-    assignments
-      .filter((a) => a.date)
-      .map((a) => a.date.slice(0, 7))
-  )].sort();
-
-  // Participantes activos
-  const normalizeName = (name) =>
-    name?.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") || "";
-
+  // Participantes totales (sin excluidos)
   const filteredParticipants = participants.filter(
     (p) => !EXCLUDED_PARTICIPANTS.includes(p.name)
   );
 
-  const assignedParticipantNames = new Set();
-  const replacedParticipantNames = new Set(filteredReplacements.map(r => normalizeName(r.oldParticipantName)));
-  filteredAssignments.forEach((a) => {
-    if (a.participantName && !replacedParticipantNames.has(normalizeName(a.participantName))) {
-      assignedParticipantNames.add(normalizeName(a.participantName));
-    }
-    if (a.secondParticipantName && !replacedParticipantNames.has(normalizeName(a.secondParticipantName))) {
-      assignedParticipantNames.add(normalizeName(a.secondParticipantName));
-    }
-  });
-
-  const activeParticipants = filteredParticipants.filter((p) =>
-    assignedParticipantNames.has(normalizeName(p.name))
-  );
-
-  // Datos para el gráfico de reemplazos por tipo
-  const replacementsPerType = {};
-  filteredReplacements.forEach((r) => {
-    const key = r.type || "Desconocido";
-    replacementsPerType[key] = (replacementsPerType[key] || 0) + 1;
-  });
-  const pieLabels = Object.keys(replacementsPerType).map(key => formatAssignmentType(key));
-  const pieData = Object.values(replacementsPerType);
-
-  // 🔹 Nuevo cálculo de Top Asignados (solo mes y exclusiones, sin null/undefined/vacíos)
+  // Top Asignados (con filtro de fecha)
   const participantCounts = {};
   assignments.forEach((a) => {
     if (
       a.date &&
-      (selectedMonth === "all" || a.date.startsWith(selectedMonth)) &&
+      matchesDateFilter(a.date) &&
       !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
       a.participantName &&
       a.participantName.trim() !== "" &&
@@ -144,7 +159,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     }
     if (
       a.date &&
-      (selectedMonth === "all" || a.date.startsWith(selectedMonth)) &&
+      matchesDateFilter(a.date) &&
       !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
       a.secondParticipantName &&
       a.secondParticipantName.trim() !== "" &&
@@ -154,6 +169,31 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         (participantCounts[a.secondParticipantName] || 0) + 1;
     }
   });
+
+  // Participantes activos all-time: todos los que tienen >= 1 asignación efectiva
+  const allTimeParticipantCounts = {};
+  assignments.forEach((a) => {
+    if (
+      !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
+      a.participantName &&
+      a.participantName.trim() !== "" &&
+      !EXCLUDED_PARTICIPANTS.includes(a.participantName)
+    ) {
+      allTimeParticipantCounts[a.participantName] =
+        (allTimeParticipantCounts[a.participantName] || 0) + 1;
+    }
+    if (
+      !EXCLUDED_ASSIGNMENT_TYPES.includes(a.type) &&
+      a.secondParticipantName &&
+      a.secondParticipantName.trim() !== "" &&
+      !EXCLUDED_PARTICIPANTS.includes(a.secondParticipantName)
+    ) {
+      allTimeParticipantCounts[a.secondParticipantName] =
+        (allTimeParticipantCounts[a.secondParticipantName] || 0) + 1;
+    }
+  });
+
+  const activeParticipantsCount = Object.values(allTimeParticipantCounts).filter((c) => c >= 1).length;
 
   const topParticipantsFull = Object.entries(participantCounts)
     .sort((a, b) => b[1] - a[1]);
@@ -182,9 +222,18 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     : replacementsReceivedSorted.slice(0, 5);
 
   // % de participantes activos
-  const activeParticipantsPercentage = filteredParticipants.length > 0 
-    ? ((activeParticipants.length / filteredParticipants.length) * 100).toFixed(1) + "%"
+  const activeParticipantsPercentage = filteredParticipants.length > 0
+    ? ((activeParticipantsCount / filteredParticipants.length) * 100).toFixed(1) + "%"
     : "0%";
+
+  // Datos para el gráfico de reemplazos por tipo
+  const replacementsPerType = {};
+  filteredReplacements.forEach((r) => {
+    const key = r.type || "Desconocido";
+    replacementsPerType[key] = (replacementsPerType[key] || 0) + 1;
+  });
+  const pieLabels = Object.keys(replacementsPerType).map(key => formatAssignmentType(key));
+  const pieData = Object.values(replacementsPerType);
 
   const pieOptions = {
     plugins: {
@@ -205,7 +254,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
     }
   };
 
-  const assignmentsPerReplacement = filteredReplacements.length > 0 
+  const assignmentsPerReplacement = filteredReplacements.length > 0
     ? (filteredAssignments.length / filteredReplacements.length).toFixed(1)
     : "N/A";
 
@@ -226,23 +275,48 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-300 flex items-center justify-center gap-2">
           <ChartSpline className="w-6 h-6" /> Panel de Estadísticas
         </h2>
-        <div className="mt-4">
-          <label htmlFor="monthFilter" className="mr-2 text-gray-700 dark:text-gray-300">
-            Mostrar:
-          </label>
-          <select
-            id="monthFilter"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="p-2 border rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-          >
-            <option value="all">Todos los meses</option>
-            {availableMonths.map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
+
+        {/* Selector de año + checkboxes de meses */}
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-gray-700 dark:text-gray-300 font-medium">Año:</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => handleYearChange(e.target.value)}
+              className="p-2 border rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+            >
+              <option value="all">Todos</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          {selectedYear !== "all" && availableMonthsForYear.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {availableMonthsForYear.map((month) => (
+                <button
+                  key={month}
+                  onClick={() => handleMonthToggle(month)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
+                    selectedMonths.has(month)
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-indigo-400"
+                  }`}
+                >
+                  {MONTH_NAMES[month - 1]}
+                </button>
+              ))}
+              {selectedMonths.size > 0 && (
+                <button
+                  onClick={() => setSelectedMonths(new Set())}
+                  className="px-3 py-1 rounded-full text-sm font-medium border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -251,7 +325,7 @@ const DashboardPage = ({ db, showMessage, authUser }) => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <p className="text-sm text-gray-500">Participantes activos / total</p>
           <p className="text-3xl font-bold text-indigo-600">
-            {activeParticipants.length}/{filteredParticipants.length}
+            {activeParticipantsCount}/{filteredParticipants.length}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
