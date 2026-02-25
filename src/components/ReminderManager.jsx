@@ -8,6 +8,8 @@ import {
 } from 'firebase/firestore';
 import { formatDateToYYYYMMDD, formatDateAr } from '../utils/helpers';
 import { Pencil, Trash2 } from "lucide-react";
+import useConfirmDialog from '../hooks/useConfirmDialog';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const appId = 'default-app-id';
 
@@ -17,7 +19,8 @@ const ReminderManager = ({ db, showMessage }) => {
   const [reminderType, setReminderType] = useState('');
   const [allReminders, setAllReminders] = useState([]);
   const [editingId, setEditingId] = useState(null);
-    const textareaRef = useRef(null);
+  const textareaRef = useRef(null);
+  const { confirmDialog, showConfirm, handleConfirmClose } = useConfirmDialog();
 
   useEffect(() => {
     if (!db) return;
@@ -61,20 +64,22 @@ const ReminderManager = ({ db, showMessage }) => {
     }
   };
 
-const handleEdit = (reminder) => {
-  setReminderDate(reminder.id);
-  setReminderText(reminder.message);
-  setReminderType(reminder.type || '');
-  setEditingId(reminder.id);
+  const handleEdit = (reminder) => {
+    setReminderDate(reminder.id);
+    setReminderText(reminder.message);
+    setReminderType(reminder.type || '');
+    setEditingId(reminder.id);
 
-  // Scroll hacia el textarea
-  setTimeout(() => {
-    textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    textareaRef.current?.focus();
-  }, 100);
-};
+    setTimeout(() => {
+      textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      textareaRef.current?.focus();
+    }, 100);
+  };
 
   const handleDelete = async (reminder) => {
+    const confirmed = await showConfirm('¿Eliminar este recordatorio? Esta acción no se puede deshacer.', 'Eliminar');
+    if (!confirmed) return;
+
     try {
       await deleteDoc(doc(db, `artifacts/${appId}/public/data/public_reminders`, reminder.id));
       showMessage('Recordatorio eliminado.');
@@ -117,15 +122,15 @@ const handleEdit = (reminder) => {
           </select>
         </div>
         <div className="flex flex-col gap-1 sm:col-span-3">
-  <label className="text-sm text-gray-300">Mensaje</label>
-  <textarea
-    value={reminderText}
-    onChange={(e) => setReminderText(e.target.value)}
-    placeholder="Mensaje del recordatorio"
-    className="w-full p-4 rounded-xl border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y min-h-[150px] transition-all"
-    ref={textareaRef}
-  />
-</div>
+          <label className="text-sm text-gray-300">Mensaje</label>
+          <textarea
+            value={reminderText}
+            onChange={(e) => setReminderText(e.target.value)}
+            placeholder="Mensaje del recordatorio"
+            className="w-full p-4 rounded-xl border border-gray-700 bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y min-h-[150px] transition-all"
+            ref={textareaRef}
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-2">
@@ -174,7 +179,7 @@ const handleEdit = (reminder) => {
                 </button>
                 <button
                   onClick={() => handleDelete(reminder)}
-                  className=" text-white p-2 rounded-lg bg-rose-600 hover:bg-rose-700 transition"
+                  className="text-white p-2 rounded-lg bg-rose-600 hover:bg-rose-700 transition"
                   title="Eliminar"
                 >
                   <Trash2 size={18} />
@@ -187,6 +192,15 @@ const handleEdit = (reminder) => {
           )}
         </ul>
       </div>
+
+      {confirmDialog.visible && (
+        <ConfirmDialog
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          onCancel={() => handleConfirmClose(false)}
+          onConfirm={() => handleConfirmClose(true)}
+        />
+      )}
     </div>
   );
 };

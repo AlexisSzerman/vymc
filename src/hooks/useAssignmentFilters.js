@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from "react";
 
+const getMonday = (date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const daysToMonday = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + daysToMonday);
+  return d;
+};
+
 const useAssignmentFilters = (allAssignments) => {
   const [filterDate, setFilterDate] = useState("");
   const [filterName, setFilterName] = useState("");
@@ -9,19 +17,28 @@ const useAssignmentFilters = (allAssignments) => {
 
   useEffect(() => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normaliza la fecha de hoy a medianoche
+    today.setHours(0, 0, 0, 0);
 
-    let filtered = [...allAssignments]; // Copia para no mutar el array original
+    // Calcula el lunes de la semana actual
+    const monday = getMonday(today);
+
+    let filtered = [...allAssignments];
 
     // Aplica filtro por fecha si está especificado
     if (filterDate) {
-      filtered = filtered.filter((a) => a.date === filterDate);
+      // Calcula el lunes de la semana de la fecha seleccionada
+      const [fy, fm, fd] = filterDate.split("-").map(Number);
+      const selectedDate = new Date(fy, fm - 1, fd);
+      const filterMonday = getMonday(selectedDate);
+      const filterMondayStr = filterMonday.toISOString().slice(0, 10);
+
+      filtered = filtered.filter((a) => a.date === filterMondayStr);
     } else {
-      // Si no hay filtro de fecha, muestra solo las asignaciones futuras o de hoy
+      // Si no hay filtro de fecha, muestra desde el lunes de la semana actual en adelante
       filtered = filtered.filter((a) => {
         const [y, m, d] = a.date.split("-").map(Number);
-        const assignmentDate = new Date(y, m - 1, d); // Meses son 0-indexados
-        return assignmentDate >= today;
+        const assignmentDate = new Date(y, m - 1, d);
+        return assignmentDate >= monday;
       });
     }
 
@@ -38,13 +55,13 @@ const useAssignmentFilters = (allAssignments) => {
     // Ordena las asignaciones: primero por fecha, luego por orden
     filtered.sort((a, b) => {
       if (a.date === b.date) {
-        return (a.orden ?? 99) - (b.orden ?? 99); // Usa 99 si 'orden' no está definido
+        return (a.orden ?? 99) - (b.orden ?? 99);
       }
       return new Date(a.date) - new Date(b.date);
     });
 
-    setCurrentAssignments(filtered); // Actualiza el estado de las asignaciones filtradas
-  }, [allAssignments, filterDate, filterName]); // Dependencias para re-ejecutar el efecto
+    setCurrentAssignments(filtered);
+  }, [allAssignments, filterDate, filterName]);
 
   // Limpia todos los filtros
   const clearFilters = () => {
