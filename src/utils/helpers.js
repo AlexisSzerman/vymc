@@ -1,4 +1,3 @@
-// Helper to get the Monday and Sunday dates of a given week
 export const getMeetingWeekDates = (date, offset = 0) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0); // Normalize to start of day
@@ -69,6 +68,8 @@ export const formatAssignmentType = (type) => {
       return "Visita del Superintendente y su Esposa";
     case "conmemoracion":
       return "Conmemoración";
+    case "personalizado":
+      return "Personalizado (texto libre)";
     default:
       // Si no está definido, devolver con capitalización genérica
       return type
@@ -79,6 +80,15 @@ export const formatAssignmentType = (type) => {
         .join(" ");
   }
 };
+
+// Tipos de asignación que NO requieren obligatoriamente un participante titular
+export const TYPES_WITHOUT_REQUIRED_PARTICIPANT = [
+  "asamblea-circuito",
+  "asamblea-regional",
+  "cancion",
+  "conmemoracion",
+  "personalizado",
+];
 
 export const calcularDiasDesde = (fechaReferencia, ultimaAsignacionFecha) => {
   if (!ultimaAsignacionFecha) {

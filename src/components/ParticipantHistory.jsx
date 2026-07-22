@@ -17,7 +17,9 @@ const ParticipantHistory = ({
       </p>
 
       <ul className="list-disc pl-5 text-gray-300 mb-3">
-        {participantHistory.map((a, i) => {
+  {participantHistory
+    .filter((a) => a.type !== "personalizado")
+    .map((a, i) => {
           const esTitular = a.participantId === selectedParticipantId;
           const esAyudante = a.secondParticipantId === selectedParticipantId;
           return (

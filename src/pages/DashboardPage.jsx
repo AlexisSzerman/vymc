@@ -25,7 +25,7 @@ ChartJS.register(
 const appId = "default-app-id";
 
 const EXCLUDED_PARTICIPANTS = ["A Confirmar", "Presidente", "José Gularte"];
-const EXCLUDED_ASSIGNMENT_TYPES = ["cancion", "visita"];
+const EXCLUDED_ASSIGNMENT_TYPES = ["cancion", "visita", "personalizado"];
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",

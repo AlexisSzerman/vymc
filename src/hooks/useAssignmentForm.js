@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+import { TYPES_WITHOUT_REQUIRED_PARTICIPANT } from "../utils/helpers";
 
 const useAssignmentForm = (
   db, 
@@ -17,6 +18,7 @@ const useAssignmentForm = (
   const [meetingDate, setMeetingDate] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [assignmentTitle, setAssignmentTitle] = useState("");
+  const [customContent, setCustomContent] = useState(""); // ← NUEVO: texto libre para "personalizado"
   const [selectedParticipantId, setSelectedParticipantId] = useState("");
   const [secondSelectedParticipantId, setSecondSelectedParticipantId] = useState("");
   const [assignmentOrder, setAssignmentOrder] = useState("");
@@ -28,6 +30,7 @@ const useAssignmentForm = (
     setSelectedType("");
     setAssignmentTitle("");
     setAssignmentTime("");          // ← AGREGAR ESTA LÍNEA
+    setCustomContent("");           // ← NUEVO
     setAssignmentOrder("");
     setSelectedParticipantId("");
     setSecondSelectedParticipantId("");
@@ -40,6 +43,7 @@ const useAssignmentForm = (
     setSelectedType(assignment.type);
     setAssignmentTitle(assignment.title);
     setAssignmentTime(assignment.time || "");  // ← AGREGAR ESTA LÍNEA
+    setCustomContent(assignment.customContent || ""); // ← NUEVO
     setAssignmentOrder(assignment.orden ?? "");
     setSelectedParticipantId(assignment.participantId || "");
     setSecondSelectedParticipantId(assignment.secondParticipantId || "");
@@ -55,10 +59,19 @@ const useAssignmentForm = (
       return showMessage("Primero debes seleccionar una fecha de reunión.");
     }
 
-    const isAssembly = ["asamblea-circuito", "asamblea-regional", "cancion", "conmemoracion"].includes(selectedType);
-    if (!isAssembly && !selectedParticipantId) {
+    // Los tipos "asamblea", "canción", "conmemoración" y el comodín
+    // "personalizado" no requieren obligatoriamente un participante titular.
+    const requiresParticipant = !TYPES_WITHOUT_REQUIRED_PARTICIPANT.includes(
+      selectedType
+    );
+    if (requiresParticipant && !selectedParticipantId) {
       return showMessage("Completa los campos requeridos.");
     }
+/* 
+    // Para el tipo personalizado, exigimos al menos que haya contenido escrito
+    if (selectedType === "personalizado" && !customContent.trim()) {
+      return showMessage("Escribe el contenido de la asignación personalizada.");
+    } */
 
     // Validación de asignaciones en el mismo día para evitar duplicados
     const sameDayAssignments = allAssignments.filter(
@@ -85,7 +98,11 @@ const useAssignmentForm = (
     });
 
     // Si hay un conflicto, pide confirmación al usuario
-    if (participantAlreadyAssigned || secondParticipantAlreadyAssigned) {
+    // (solo si efectivamente hay un participante titular seleccionado)
+    if (
+      selectedParticipantId &&
+      (participantAlreadyAssigned || secondParticipantAlreadyAssigned)
+    ) {
       const confirm = await showConfirm(
         "El participante ya tiene una asignación esta fecha. ¿Deseas continuar?",
         "Continuar"
@@ -101,6 +118,7 @@ const useAssignmentForm = (
       type: selectedType,
       title: assignmentTitle.trim(),
       time: assignmentTime || null,           // ← AGREGAR ESTA LÍNEA
+      customContent: selectedType === "personalizado" ? customContent.trim() : null, // ← NUEVO
       orden: parseInt(assignmentOrder, 10) || 99, // Orden por defecto si no se especifica
       participantId: selectedParticipantId || null,
       participantName:
@@ -206,6 +224,8 @@ const useAssignmentForm = (
     setSelectedType,
     assignmentTitle,
     setAssignmentTitle,
+    customContent,          // ← NUEVO
+    setCustomContent,       // ← NUEVO
     selectedParticipantId,
     setSelectedParticipantId,
     secondSelectedParticipantId,

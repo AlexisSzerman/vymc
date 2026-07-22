@@ -10,7 +10,7 @@ import html2canvas from "html2canvas";
 const appId = "default-app-id";
 
 const excludedParticipants = ["A Confirmar", "Presidente", "José Gularte"];
-const excludedTypes = ["cancion", "presidencia", "oracion-inicial", "oracion-final","tesoros","perlas-escondidas","conduccion-estudio-biblico","nuestra-vida-cristiana","necesidades","lectura-libro"];
+const excludedTypes = ["cancion", "presidencia", "oracion-inicial", "oracion-final","tesoros","perlas-escondidas","conduccion-estudio-biblico","nuestra-vida-cristiana","necesidades","lectura-libro", "personalizado"];
 
 const ExportAssignmentsPage = ({ db }) => {
   const [assignments, setAssignments] = useState([]);

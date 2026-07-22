@@ -9,6 +9,8 @@ const AssignmentForm = ({
   setAssignmentTitle,
   assignmentTime, // Nueva prop
   setAssignmentTime, // Nueva prop
+  customContent, // Nueva prop (texto libre, solo tipo "personalizado")
+  setCustomContent, // Nueva prop
   selectedParticipantId,
   setSelectedParticipantId,
   secondSelectedParticipantId,
@@ -33,6 +35,11 @@ const AssignmentForm = ({
     "cancion",
     "conmemoracion",
   ].includes(selectedType);
+
+  // Tipo comodín: el titular es opcional (no se deshabilita el selector,
+  // solo deja de ser obligatorio) y aparece un bloque de texto libre extra.
+  const isCustom = selectedType === "personalizado";
+
   const selectedParticipant = participants.find(
     (p) => p.id === selectedParticipantId
   );
@@ -78,19 +85,37 @@ const AssignmentForm = ({
             <option value="asamblea-regional">Asamblea Regional</option>
             <option value="visita">Visita Superintendente y esposa</option>
             <option value="conmemoracion">Conmemoración</option>
+            <option value="personalizado">Personalizado (texto libre)</option>
           </select>
         </div>
 
-        {/* Título de la Asignación */}
+        {/* Título de la Asignación (siempre editable, como antes) */}
         <div>
           <label className="block text-gray-300 mb-1">Título</label>
           <input
             type="text"
+            placeholder={isCustom ? "Título breve (opcional)" : ""}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
             value={assignmentTitle}
             onChange={(e) => setAssignmentTitle(e.target.value)}
           />
         </div>
+
+        {/* Bloque de texto libre, exclusivo del tipo "personalizado" */}
+        {isCustom && (
+          <div className="sm:col-span-2">
+            <label className="block text-gray-300 mb-1">
+              Contenido (escribí lo que necesites)
+            </label>
+            <textarea
+              rows={5}
+              placeholder="Escribí acá el aviso, anuncio o contenido completo que quieras mostrar en el programa..."
+              className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
+              value={customContent}
+              onChange={(e) => setCustomContent(e.target.value)}
+            />
+          </div>
+        )}
 
         {/* Horario de la Asignación - NUEVO CAMPO */}
         <div>
@@ -117,16 +142,24 @@ const AssignmentForm = ({
 
         {/* Selector de Participante Titular */}
         <div>
-          <label className="block text-gray-300 mb-1">Titular</label>
+          <label className="block text-gray-300 mb-1">
+            Titular {isCustom && <span className="text-gray-500">(opcional)</span>}
+          </label>
           <select
             className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500"
             value={selectedParticipantId}
             onChange={(e) => setSelectedParticipantId(e.target.value)}
             disabled={isAssembly}
           >
-            <option value="">Selecciona</option>
+            <option value="">
+              {isCustom ? "Sin participante / Selecciona" : "Selecciona"}
+            </option>
             {participants
-              .filter((p) => p.enabledAssignments?.includes(selectedType))
+              .filter((p) =>
+                isCustom
+                  ? true
+                  : p.enabledAssignments?.includes(selectedType)
+              )
               .sort((a, b) => a.name.localeCompare(b.name))
               .map((p) => (
                 <option key={p.id} value={p.id}>

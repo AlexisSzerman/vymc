@@ -274,6 +274,7 @@ const PublicViewPage = ({ db, showMessage }) => {
               <ul className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-blue-100 dark:border-blue-700">
                 {assignments.map((assignment) => {
                   const section = SECTION_MAP[assignment.type];
+                  const isCustom = assignment.type === "personalizado";
                   let banner = null;
 
                   if (section && !shownSections.has(section)) {
@@ -324,25 +325,45 @@ const PublicViewPage = ({ db, showMessage }) => {
                                 <br className="sm:hidden" />
                               </>
                             )}
-                            <span className="inline-flex items-center gap-2 leading-tight">
-                              {assignment.type === "cancion" && (
-                                <span
-                                  className="jw-icon jw-icon-133 text-xl align-middle leading-none"
-                                  aria-label="Icono Canción"
-                                />
-                              )}
-                              <span>
-                                {formatAssignmentType(assignment.type)}
-                              </span>
-                            </span>
-                            {assignment.title && assignment.type !== "cancion" && (
-                              <span>: </span>
+
+                            {isCustom ? (
+                              // Tipo "personalizado": no mostramos la etiqueta de tipo,
+                              // directamente el título (si lo cargaron) como encabezado.
+                              assignment.title && (
+                                <span>{assignment.title}</span>
+                              )
+                            ) : (
+                              <>
+                                <span className="inline-flex items-center gap-2 leading-tight">
+                                  {assignment.type === "cancion" && (
+                                    <span
+                                      className="jw-icon jw-icon-133 text-xl align-middle leading-none"
+                                      aria-label="Icono Canción"
+                                    />
+                                  )}
+                                  <span>
+                                    {formatAssignmentType(assignment.type)}
+                                  </span>
+                                </span>
+                                {assignment.title && assignment.type !== "cancion" && (
+                                  <span>: </span>
+                                )}
+                              </>
                             )}
                           </div>
-                          {assignment.title && (
+
+                          {/* Título como cuerpo (todos los tipos, excepto personalizado que ya lo usó como encabezado arriba) */}
+                          {assignment.title && !isCustom && (
                             <span className="text-lg text-gray-700 dark:text-gray-300">
                               {assignment.title}
                             </span>
+                          )}
+
+                          {/* Bloque de texto libre, exclusivo del tipo "personalizado" */}
+                          {isCustom && assignment.customContent && (
+                            <p className="text-md text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-1">
+                              {assignment.customContent}
+                            </p>
                           )}
                         </div>
 

@@ -27,6 +27,8 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
     setSelectedType,
     assignmentTitle,
     setAssignmentTitle,
+    customContent,               // ← AGREGADO
+    setCustomContent,            // ← AGREGADO
     selectedParticipantId,
     setSelectedParticipantId,
     secondSelectedParticipantId,
@@ -122,6 +124,8 @@ const AssignmentsPage = ({ db, userId, showMessage }) => {
           setAssignmentTitle={setAssignmentTitle}
           assignmentTime={assignmentTime}
           setAssignmentTime={setAssignmentTime}
+          customContent={customContent}             // ← AGREGADO
+          setCustomContent={setCustomContent}        // ← AGREGADO
           selectedParticipantId={selectedParticipantId}
           setSelectedParticipantId={setSelectedParticipantId}
           secondSelectedParticipantId={secondSelectedParticipantId}
