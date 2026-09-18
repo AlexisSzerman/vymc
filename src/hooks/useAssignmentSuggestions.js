@@ -53,8 +53,15 @@ const useAssignmentSuggestions = (
   }, [allAssignments, selectedType, selectedParticipantId, secondSelectedParticipantId]);
 
   // Helper function to calculate and sort suggestions, incorporating exclusion
-  const getSortedSuggestions = (targetAssignmentType, isSecondParticipant = false) => {
+  const getSortedSuggestions = React.useCallback((targetAssignmentType, isSecondParticipant = false) => {
     if (!meetingDate) return [];
+
+    // Tipo contra el cual se chequea la exclusión ("Excluir de sugerencias para:").
+    // El ayudante de una demostración se rige por "ayudante", no por "demostracion".
+    const tipoExclusion =
+      targetAssignmentType === "demostracion" && isSecondParticipant
+        ? "ayudante"
+        : targetAssignmentType;
 
     const suggestions = participants
       .filter((p) => {
@@ -62,9 +69,9 @@ const useAssignmentSuggestions = (
         const isEnabled = p.enabledAssignments?.includes(targetAssignmentType) ||
                          (targetAssignmentType === "demostracion" && p.enabledAssignments?.includes("ayudante") && isSecondParticipant);
 
-        // Step 2: Check if participant is explicitly excluded from this assignment type
-        // 'excludedFromAssignmentTypes' is now directly on the participant object
-        const isExcluded = p.excludedFromAssignmentTypes?.includes(targetAssignmentType);
+        // Step 2: Check if participant is explicitly excluded from this assignment type/role
+        // 'excludedFromAssignmentTypes' is directly on the participant object
+        const isExcluded = p.excludedFromAssignmentTypes?.includes(tipoExclusion);
 
         return isEnabled && !isExcluded;
       })
@@ -108,26 +115,26 @@ const useAssignmentSuggestions = (
         return b.diasSinAsignacion - a.diasSinAsignacion;
       })
       .slice(0, 20); // Show top 20 suggestions
-  };
+  }, [meetingDate, participants, allAssignments]);
 
   // Sugerencias generales para tipos de asignación que no son demostración
   const sugerenciasGenerales = React.useMemo(() => {
     if (selectedType === "demostracion") return [];
     // Ensure that selectedType is directly passed and handled by getSortedSuggestions
     return getSortedSuggestions(selectedType);
-  }, [meetingDate, selectedType, participants, allAssignments]);
+  }, [selectedType, getSortedSuggestions]);
 
   // Sugerencias para titulares de demostración
   const sugerenciasTitularesDemostracion = React.useMemo(() => {
     if (selectedType !== "demostracion") return [];
     return getSortedSuggestions("demostracion", false); // false indicates titular
-  }, [meetingDate, selectedType, participants, allAssignments]);
+  }, [selectedType, getSortedSuggestions]);
 
   // Sugerencias para ayudantes de demostración
   const sugerenciasAyudantesDemostracion = React.useMemo(() => {
     if (selectedType !== "demostracion") return [];
     return getSortedSuggestions("demostracion", true); // true indicates ayudante
-  }, [meetingDate, selectedType, participants, allAssignments]);
+  }, [selectedType, getSortedSuggestions]);
 
   return {
     selectedParticipantHistory,
